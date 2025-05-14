@@ -132,6 +132,11 @@ data:
           return 200 "ok\n";
         }
 
+        # Redirect record endpoint to be able to use a custom app view.
+        location ~ ^/records/([^/]+)/?$ {
+          rewrite ^/records/([^/]+)/?$ $scheme://$host/records/pid/$1 permanent;
+        }
+
         # Proxying to the application server
         ## UI server
         location / {
