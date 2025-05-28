@@ -18,3 +18,4 @@ spec:
   selector:
     app.kubernetes.io/component: web
   type: {{ .Values.web.service.type }}
+  loadBalancerIP: "78.138.70.40"

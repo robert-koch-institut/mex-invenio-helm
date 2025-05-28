@@ -25,7 +25,8 @@ dependencies:
   - name: rabbitmq
     condition: rabbitmq.enabled
     repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: "12.9.3"
+    #version: "12.9.3"
+    version: "16.0.3"
   - name: redis
     condition: redis.enabled
     repository: "oci://registry-1.docker.io/bitnamicharts"
