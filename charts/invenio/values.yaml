@@ -1,7 +1,7 @@
 ---
 
 global:
-  timezone: "Europe/Zurich"
+  timezone: "Europe/Berlin"
 
 ## @param nameOverride String to partially override common.names.name
 ##
@@ -39,6 +39,7 @@ invenio:
   init: false
   default_users: []  # Requires invenio.init=true
   demo_data: false  # Setting invenio.demo_data=true requires also setting default_users!
+  create_fixtures: false # Also requires invenio.init=true. Indexing can take several minutes!!
   sentry:
     ## @param invenio.sentry.enabled Enable Sentry.io integration
     ##
@@ -258,6 +259,8 @@ worker:
       memory: 1Gi
   volumes:
     enabled: false
+  livenessProbe:
+    initialDelaySeconds: 20
   ## @param worker.podSecurityContext securityContext for the worker Pod
   ##
   podSecurityContext:
@@ -315,7 +318,6 @@ redis:
   auth:
     enabled: false  # Dangerous! This lets Invenio connect to Redis unauthenticated!
   master:
-    disableCommands: []  # Dangerous! This lets us run the `FLUSHALL` and `FLUSHDB` commands! Unfortunately, they are required by the wipe_recreate.sh script when installing Invenio.
     resources:
       limits:
         cpu: "1"
@@ -324,7 +326,6 @@ redis:
         cpu: 500m
         memory: 500Mi
   replica:
-    disableCommands: []  # Dangerous! This lets us run the `FLUSHALL` and `FLUSHDB` commands! Unfortunately, they are required by the wipe_recreate.sh script when installing Invenio.
     resources:
       limits:
         cpu: "1"
@@ -332,6 +333,8 @@ redis:
       requests:
         cpu: 500m
         memory: 500Mi
+  persistence:
+    size: 8Gi
 
 rabbitmq:
   enabled: true
@@ -344,6 +347,8 @@ rabbitmq:
     requests:
       cpu: "1"
       memory: 2Gi
+  persistence:
+    size: 8Gi
 
 rabbitmqExternal: {}
 
@@ -367,11 +372,15 @@ postgresql:
   auth:
     username: invenio
     database: invenio
+  persistence:
+    size: 8Gi
 
 postgresqlExternal: {}
 
 opensearch:
   enabled: true
+  persistence:
+    size: 8Gi
 
 externalOpensearch: {}
 

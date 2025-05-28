@@ -1,0 +1,49 @@
+invenio:
+    init: true  # initiates db, index, and admin roles
+    hostname: "stage.429354.projects.prod.gardener.get-cloud.io"
+    secret_key: "hello"
+    security_login_salt: "guten tag"
+    csrf_secret_salt: "abcde"
+    create_fixtures: true
+    #extraConfig:
+    #  INVENIO_MAIL_SERVER: "sandbox.smtp.mailtrap.io"
+    #  INVENIO_MAIL_PORT: "2525"
+    #  INVENIO_MAIL_USERNAME: "REPLACE-ME"
+    #  INVENIO_MAIL_PASSWORD: "REPLACE-ME"
+    #  INVENIO_MAIL_USE_SSL: "False"
+    #  INVENIO_MAIL_USE_TLS: "True"
+    #  INVENIO_SETTINGS_MODULE: "mex_invenio.config"
+    datacite:
+      enabled: false
+
+web:
+  image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
+  imagePullPolicy: Always
+
+worker:
+  image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
+  imagePullPolicy: Always
+
+haproxy:
+  enabled: false
+
+flower:
+  enabled: false
+
+persistence:
+  enabled: false
+  #storage_class: "csi-cinder-sc-retain"
+  #annotations:
+  #  storageclass.kubernetes.io/is-default-class: "true"
+
+ingress:
+  enabled: true
+  class: "nginx-internal"
+  tlsSecretNameOverride: "invenio-letsencrypt-secret"
+  annotations:
+    kubernetes.io/ingress.class: "nginx-internal"
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50G"
+
+clusterissuer:
+  email: "sysadmin+mex@cottagelabs.com"
