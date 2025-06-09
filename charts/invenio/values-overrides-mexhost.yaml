@@ -1,10 +1,10 @@
 invenio:
     init: true  # initiates db, index, and admin roles
     #hostname: "stage.429354.projects.prod.gardener.get-cloud.io"
-    hostname: "mex.cottagelabs.com"
-    secret_key: "hello"
-    security_login_salt: "guten tag"
-    csrf_secret_salt: "abcde"
+    hostname: "mex-stage.rki.de"
+    secret_key: "<placeholder>"
+    security_login_salt: "<placeholder>"
+    csrf_secret_salt: "<placeholder>"
     create_fixtures: true
     extraConfig:
       INVENIO_SETTINGS_MODULE: "mex_invenio.config"
@@ -22,12 +22,15 @@ web:
   imagePullPolicy: Always
   annotations:
     loadbalancer.openstack.org/keep-floatingip: "true"
+    #loadbalancer.openstack.org/proxy-protocol: "false"
     loadbalancer.openstack.org/load-balancer-address: "78.138.70.40"
-  replicas: 4
+    #loadbalancer.openstack.org/hostname: "mex-stage.rki.de"
+  replicas: 2
 
 worker:
   image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
   imagePullPolicy: Always
+  replicas: 1
 
 haproxy:
   enabled: false
@@ -44,12 +47,14 @@ persistence:
 ingress:
   enabled: true
   class: "nginx"
-  #tlsSecretNameOverride: "invenio-letsencrypt-secret"
+  #tlsSecretNameOverride: "letsencrypt-prod"
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    #cert-manager.io/cluster-issuer: "letsencrypt-production"
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    #cert-manager.io/issue-temporary-certificate: "true"
+    #acme.cert-manager.io/http01-edit-in-place: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50G"
-    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32"
+    #nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32"
 
 clusterissuer:
   email: "sysadmin+mex@cottagelabs.com"

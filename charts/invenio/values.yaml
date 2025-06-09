@@ -206,10 +206,10 @@ web:
     resources:
       requests:
         cpu: '1'
-        memory: 200Mi
+        memory: 500Mi
       limits:
         cpu: '1'
-        memory: 200Mi
+        memory: 500Mi
     ## @param web.initContainers.securityContext securityContext for the initContainers in the web pod
     ##
     securityContext:

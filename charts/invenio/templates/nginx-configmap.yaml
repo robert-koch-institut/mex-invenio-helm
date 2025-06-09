@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "invenio.labels" . | nindent 4 }}
 data:
+  #use_proxy_protocol: "false"
   invenio.conf: |
     upstream web {
         server 127.0.0.1:5000 max_conns={{ .Values.nginx.max_conns }} fail_timeout=0;
