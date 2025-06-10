@@ -32,6 +32,16 @@ worker:
   imagePullPolicy: Always
   replicas: 1
 
+postgresql:
+  enabled: false
+
+postgresqlExternal: 
+  hostname: "<placeholder>"
+  port: "<placeholder>"
+  username: "<placeholder>"
+  password: "<placeholder>"
+  databaseName: invenio
+
 haproxy:
   enabled: false
 
