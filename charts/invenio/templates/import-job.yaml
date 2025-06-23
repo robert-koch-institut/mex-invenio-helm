@@ -1,0 +1,24 @@
+{{- if .Values.importjob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "invenio.fullname" . }}
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: import-job
+            image: {{ required "Missing .Values.importjob.image" .Values.importjob.image }}
+            imagePullPolicy: Always
+            command:
+            - invenio
+            - shell
+            - /opt/invenio/src/site/mex_invenio/scripts/s3_manager.py
+            - --ingest
+          restartPolicy: OnFailure
+{{- end }}

@@ -277,6 +277,11 @@ worker:
       drop:
         - ALL
 
+# The import job isn't part of Invenio, so it is disabled by default.
+importjob:
+  enabled: false
+  image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
+
 workerBeat:
   ## @param workerBeat.extraEnvVars Extra environment variables (templated) to be added to the pods.
   ##
