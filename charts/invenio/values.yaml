@@ -280,7 +280,25 @@ worker:
 # The import job isn't part of Invenio, so it is disabled by default.
 importjob:
   enabled: false
-  image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
+  extraEnvVars: []
+  resources:
+    requests:
+      cpu: 500m
+      memory: 200Mi
+    limits:
+      cpu: "2"
+      memory: 500Mi
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    seccompProfile:
+      type: "RuntimeDefault"
 
 workerBeat:
   ## @param workerBeat.extraEnvVars Extra environment variables (templated) to be added to the pods.

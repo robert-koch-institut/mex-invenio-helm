@@ -40,7 +40,7 @@ worker:
 
 importjob:
   enabled: true
-  image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
+  imagePullPolicy: Always
 
 # FIXME: temporarily re-enable the containerised sql until our host provides a postrgres 
 postgresql:
@@ -75,8 +75,8 @@ ingress:
     #cert-manager.io/issue-temporary-certificate: "true"
     #acme.cert-manager.io/http01-edit-in-place: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50G"
-    # IP whitelist:                                      steve            aga              RKI             RKI
-    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32,146.90.80.159/32,77.87.228.64/29,77.87.224.97/29"
+    # IP whitelist:                                      steve            aga              hrafn           RKI             RKI
+    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32,146.90.80.159/32,82.37.113.44/32,77.87.228.64/29,77.87.224.97/29"
 
 clusterissuer:
   email: "sysadmin+mex@cottagelabs.com"
