@@ -41,6 +41,13 @@ worker:
 importjob:
   enabled: true
   imagePullPolicy: Always
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
 
 # FIXME: temporarily re-enable the containerised sql until our host provides a postrgres 
 postgresql:
