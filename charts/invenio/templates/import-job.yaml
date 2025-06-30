@@ -37,23 +37,11 @@ spec:
               value: {{ include "invenio.rabbitmq.uri" . }}
             - name: INVENIO_SQLALCHEMY_DATABASE_URI
               value: {{ include "invenio.sqlAlchemyDbUri" . }}
-            volumeMounts:
-              {{- range $key, $value := .Values.invenio.vocabularies }}
-              - name: vocabularies
-                mountPath: "/opt/invenio/var/instance/app_data/vocabularies/{{ $key }}"
-                subPath: "{{ $key }}"
-              {{- end }}
             {{- include "invenio.config.sentry" . | nindent 12 }}
             {{- if .Values.importjob.resources }}
             resources: {{- toYaml .Values.importjob.resources | nindent 14 }}
             {{- end }}
           restartPolicy: OnFailure
-          {{- if .Values.invenio.vocabularies }}
-          volumes:
-            - name: vocabularies
-              configMap:
-                name: "{{ include "invenio.fullname" . }}-vocabularies"
-          {{- end }}
           {{- if .Values.web.imagePullSecret }}
           imagePullSecrets:
           - name: {{ .Values.web.imagePullSecret }}

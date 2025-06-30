@@ -116,7 +116,14 @@ kubectl delete namespace cert-manager
 
 For now we're using the Azure container repository, so we build and push the containers:
 
-From the instance repo:
+In the instance repo:
+
+It's important that the translations are included in the image. This is done by running
+
+```bash
+invenio-cli translations compile
+```
+
 ```bash
 az acr login --name cottagelabs
 docker build -t cottagelabs.azurecr.io/mex-invenio .
