@@ -1,27 +1,30 @@
 invenio:
-    init: true  # initiates db, index, and admin roles
-    #hostname: "stage.429354.projects.prod.gardener.get-cloud.io"
-    hostname: "mex-stage.rki.de"
-    secret_key: "<placeholder>"
-    security_login_salt: "<placeholder>"
-    csrf_secret_salt: "<placeholder>"
-    create_fixtures: true
-    extraConfig:
-      INVENIO_SETTINGS_MODULE: "mex_invenio.config"
-      MEX_IMPORT_ENDPOINT_URL: "<placeholder>"
-      MEX_IMPORT_AWS_KEY_ID: "<placeholder>"
-      MEX_IMPORT_AWS_SECRET: "<placeholder>"
-      MEX_IMPORT_BUCKET: "<placeholder>"
-      MEX_IMPORT_OBJECT_KEY: "publisher.ndjson"
-      MEX_IMPORT_EMAIL: "<placeholder>"
-    #  INVENIO_MAIL_SERVER: "sandbox.smtp.mailtrap.io"
-    #  INVENIO_MAIL_PORT: "2525"
-    #  INVENIO_MAIL_USERNAME: "REPLACE-ME"
-    #  INVENIO_MAIL_PASSWORD: "REPLACE-ME"
-    #  INVENIO_MAIL_USE_SSL: "False"
-    #  INVENIO_MAIL_USE_TLS: "True"
-    datacite:
-      enabled: false
+  init: true  # initiates db, index, and admin roles
+  #hostname: "stage.429354.projects.prod.gardener.get-cloud.io"
+  hostname: "mex-stage.rki.de"
+  default_users:
+    steve@cottagelabs.com: "testing"
+    hrafn@cottagelabs.com: "testing"
+  secret_key: "<placeholder>"
+  security_login_salt: "<placeholder>"
+  csrf_secret_salt: "<placeholder>"
+  create_fixtures: true
+  extraConfig:
+    INVENIO_SETTINGS_MODULE: "mex_invenio.config"
+    MEX_IMPORT_ENDPOINT_URL: "<placeholder>"
+    MEX_IMPORT_AWS_KEY_ID: "<placeholder>"
+    MEX_IMPORT_AWS_SECRET: "<placeholder>"
+    MEX_IMPORT_BUCKET: "<placeholder>"
+    MEX_IMPORT_OBJECT_KEY: "publisher.ndjson"
+    MEX_IMPORT_EMAIL: "<placeholder>"
+  #  INVENIO_MAIL_SERVER: "sandbox.smtp.mailtrap.io"
+  #  INVENIO_MAIL_PORT: "2525"
+  #  INVENIO_MAIL_USERNAME: "REPLACE-ME"
+  #  INVENIO_MAIL_PASSWORD: "REPLACE-ME"
+  #  INVENIO_MAIL_USE_SSL: "False"
+  #  INVENIO_MAIL_USE_TLS: "True"
+  datacite:
+    enabled: false
 
 web:
   image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
@@ -31,7 +34,19 @@ web:
     #loadbalancer.openstack.org/proxy-protocol: "false"
     loadbalancer.openstack.org/load-balancer-address: "78.138.70.40"
     loadbalancer.openstack.org/hostname: "mex-stage.rki.de"
-  replicas: 2
+  replicas: 5
+  readinessProbe:
+    failureThreshold: 5
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+  startupProbe:
+    failureThreshold: 5
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 10
 
 worker:
   image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
@@ -55,7 +70,7 @@ postgresql:
 
 # postgresqlExternal: 
 #   hostname: "<placeholder>"
-#   port: "<placeholder>"
+#   port: 5432
 #   username: "<placeholder>"
 #   password: "<placeholder>"
 #   databaseName: invenio
