@@ -27,7 +27,7 @@ invenio:
     enabled: false
 
 web:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:cd361801f3988d441899e58fadf0f72bbb43b302"
   imagePullPolicy: Always
   annotations:
     loadbalancer.openstack.org/keep-floatingip: "true"
@@ -49,7 +49,7 @@ web:
     timeoutSeconds: 10
 
 worker:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:latest"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:cd361801f3988d441899e58fadf0f72bbb43b302"
   imagePullPolicy: Always
   replicas: 1
 
@@ -97,8 +97,8 @@ ingress:
     #cert-manager.io/issue-temporary-certificate: "true"
     #acme.cert-manager.io/http01-edit-in-place: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50G"
-    # IP whitelist:                                      steve            aga              hrafn           RKI             RKI
-    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32,146.90.80.159/32,82.37.113.44/32,77.87.228.64/29,77.87.224.97/29"
+    # IP whitelist:                                      steve            aga              hrafn           hrafn2          Richard          RKI             RKI
+    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32,146.90.80.159/32,82.37.113.44/32,86.129.227.2/32,78.144.22.157/32,77.87.228.64/29,77.87.224.97/29"
 
 clusterissuer:
   email: "sysadmin+mex@cottagelabs.com"
