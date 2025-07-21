@@ -7,10 +7,9 @@ dependencies:
   version: 14.3.3
 - name: rabbitmq
   repository: oci://registry-1.docker.io/bitnamicharts
-  #version: 12.9.3
   version: 16.0.3
 - name: redis
   repository: oci://registry-1.docker.io/bitnamicharts
   version: 18.12.0
-digest: sha256:1448eb3b42fcc12144f739df8c556447a5af21102601baf64f01e42b96079a06
-generated: "2025-02-05T14:10:38.000673196+01:00"
+digest: sha256:7a714fe0dd1b65458d1e80499ed25acdf71de8851ab1c58ee24899bbb1854547
+generated: "2025-07-21T13:57:35.972930108+01:00"

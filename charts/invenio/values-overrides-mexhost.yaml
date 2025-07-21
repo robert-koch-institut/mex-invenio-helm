@@ -5,18 +5,14 @@ invenio:
   default_users:
     steve@cottagelabs.com: "testing"
     hrafn@cottagelabs.com: "testing"
-  secret_key: "<placeholder>"
-  security_login_salt: "<placeholder>"
-  csrf_secret_salt: "<placeholder>"
+  existingSecret: "mex-invenio-secrets"
   create_fixtures: true
   extraConfig:
     INVENIO_SETTINGS_MODULE: "mex_invenio.config"
-    MEX_IMPORT_ENDPOINT_URL: "<placeholder>"
-    MEX_IMPORT_AWS_KEY_ID: "<placeholder>"
-    MEX_IMPORT_AWS_SECRET: "<placeholder>"
-    MEX_IMPORT_BUCKET: "<placeholder>"
     MEX_IMPORT_OBJECT_KEY: "publisher.ndjson"
-    MEX_IMPORT_EMAIL: "<placeholder>"
+    # MEX import secrets now pulled from mex-invenio-secrets:
+    # MEX_IMPORT_ENDPOINT_URL, MEX_IMPORT_AWS_KEY_ID, MEX_IMPORT_AWS_SECRET, 
+    # MEX_IMPORT_BUCKET, MEX_IMPORT_EMAIL
   #  INVENIO_MAIL_SERVER: "sandbox.smtp.mailtrap.io"
   #  INVENIO_MAIL_PORT: "2525"
   #  INVENIO_MAIL_USERNAME: "REPLACE-ME"
@@ -27,7 +23,7 @@ invenio:
     enabled: false
 
 web:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:cd361801f3988d441899e58fadf0f72bbb43b302"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:5fa766327714c2c9e1549f57a055212f2fb13efc"
   imagePullPolicy: Always
   annotations:
     loadbalancer.openstack.org/keep-floatingip: "true"
@@ -49,7 +45,7 @@ web:
     timeoutSeconds: 10
 
 worker:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:cd361801f3988d441899e58fadf0f72bbb43b302"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:5fa766327714c2c9e1549f57a055212f2fb13efc"
   imagePullPolicy: Always
   replicas: 1
 

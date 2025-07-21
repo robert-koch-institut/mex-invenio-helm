@@ -1,6 +1,6 @@
 # [Beta] Invenio Helm chart: RKI / mex instructions
 
-**Currently for DEV / CI - using letsencrypt certificates on nginx ingress**
+**Currently for DEV / CI - using pre-signed certificates on nginx ingress**
 
 The deployment takes about 2-3 minutes. We've added an init container to the install-init
 job in order to wait for OpenSearch to become available. This in turn has required an
@@ -8,89 +8,20 @@ increase in the initial delay of the startup probes for the worker and worker-be
 
 # Setup
 
-Tools required are `helm`, the Azure CLI tool [az](https://go.microsoft.com/fwlink/?linkid=872496)
-and [Kubectl](https://go.microsoft.com/fwlink/?linkid=2233742).
+Tools required are `helm`, and [Kubectl](https://go.microsoft.com/fwlink/?linkid=2233742).
 
 ## Connect to the cluster
 
-Hint: Commands are pre-populated when you view the instructions in the `connect` link
-in [Azure Portal](https://portal.azure.com)
-
-```bash
-az login
-az aks get-credentials --resource-group <resource_group> --name invenio-dev --overwrite-existing
-```
-
-e.g. `az aks get-credentials --resource-group mex --name mex-invenio --overwrite-existing`
-
-Your account will need role `Azure Kubernetes Service RBAC Cluster Admin` for the above to succeed.
-
-In the command above, `aks` refers to the Azure Kubernetes Service, it's editing your local `.kube/config` file to add
-the context for cluster access via `kubectl`.
-
-The choice of `resource group` seems to have implications for the storage account and other resources because
-resource groups have geographical locations. The current (demo instance) resource group's location is `ukwest` but there are numerous others to choose.
-
-To list resource groups run:
-
-```bash
-az group list
-```
-
-## Enable Azure features
-
-### Storage
-
-In order to have a ReadWriteMany shared volume, a StorageClass has been
-[created](https://learn.microsoft.com/en-us/azure/aks/azure-csi-files-storage-provision#create-a-storage-class) at
-`templates/azure-file-sc.yaml`.
-
-To use this, the Storage feature needs to be enabled on the subscription, via:
-
-```bash
-az provider register --namespace Microsoft.Storage
-```
-
-[Azure Storage redundancy SKUs (Stock Keeping Unit)](https://learn.microsoft.com/en-us/azure/storage/common/storage-redundancy)
-offer different levels of availability and backup strategies: 
-* Standard_LRS: Standard locally redundant storage (LRS)
-* Standard_GRS: Standard geo-redundant storage (GRS)
-* Standard_ZRS: Standard zone redundant storage (ZRS)
-* Standard_RAGRS: Standard read-access geo-redundant storage (RA-GRS)
-* Premium_LRS: Premium locally redundant storage (LRS)
-* Premium_ZRS: Premium zone redundant storage (ZRS)
-
-The storage class unit `Standard_LRS` is used in the `azure-file-sc.yaml` file,
-but this can be changed to suit your needs.
-
-Storage accounts are linked to resource groups, to create a new storage account see 
-[this guide](https://learn.microsoft.com/en-gb/azure/storage/common/storage-account-create).
-To list storage accounts run:
-
-```bash
-az storage account list
-```
-
-### Approuting
-
-The application routing add-on must be [enabled](https://learn.microsoft.com/en-us/azure/aks/app-routing#enable-on-an-existing-cluster)
-to correspond with the `ingressClassName` for Azure from that documentation, i.e.
-`class: "webapprouting.kubernetes.azure.com"`
-
-```bash
-az aks approuting enable --resource-group mex --name mex-invenio
-```
-
+TODO: Plusserver docs
 
 ## Install CertManager on the cluster
 
 CertManager is used to automatically handle SSL certificates outwith the service itself. It also gives us a simple way
-to verify for LetsEncrypt certs. For the full process followed here, see the documentation
-at https://cert-manager.io/docs/tutorials/getting-started-aks-letsencrypt/
+to verify for LetsEncrypt certs. We've had some trouble with this on Plusserver.
 
 The necessary steps on a fresh cluster are:
 
-## [Install cert-manager](https://cert-manager.io/docs/tutorials/getting-started-aks-letsencrypt/#install-cert-manager)
+## Install cert-manager
 
 ```bash
 helm repo add jetstack https://charts.jetstack.io --force-update
@@ -114,20 +45,13 @@ kubectl delete namespace cert-manager
 
 # Push the container image to the repository
 
-For now we're using the Azure container repository, so we build and push the containers:
+We're using the Github container repository, so we build and push the containers:
 
 In the instance repo:
 
-It's important that the translations are included in the image. This is done by running
-
 ```bash
-invenio-cli translations compile
-```
-
-```bash
-az acr login --name cottagelabs
-docker build -t cottagelabs.azurecr.io/mex-invenio .
-docker push cottagelabs.azurecr.io/mex-invenio
+docker build -t ghcr.io/robert-koch-institut/mex-invenio .
+docker push ghcr.io/robert-koch-institut/mex-invenio
 ```
 
 # InvenioRDM Deployment commands
@@ -174,40 +98,52 @@ helm upgrade -f values-overrides-mex.yaml -n mex mex-invenio . \
 
 You **MUST** provide the same secrets as before if you wish for the existing data in the instance to be accessible.
 
-## Secrets generation and env templating
+## Secret Management
 
-Useful for generating these: `uuidgen`, `pwgen -N 1` for UUIDs and a single simple password, respectively.
+The project uses Kubernetes secrets for secure credential storage:
 
-```shell
-# A secret local shell script to create our app secrets
-# mex_secrets.sh
-export MEX_INVENIO_SECRET_KEY=`uuidgen`
-export MEX_INVENIO_SECURITY_LOGIN_SALT=`uuidgen`
-export MEX_INVENIO_CSRF_SECRET_SALT=`uuidgen`
-export MEX_INVENIO_RABBITMQ_PW=`pwgen -N 1 27`
-export MEX_INVENIO_POSTGRES_PW=`pwgen -N 1 17`
+### 1. Create secrets
+Run the interactive script to generate and apply secrets:
+```bash
+scripts/create-secrets.sh
 ```
 
-Then using the install command:
+### 2. Deploy with secrets
+Extract secret values and use `--set` flags:
 
-```shell
-helm install -f values-overrides-mex.yaml -n mex mex-invenio . --create-namespace \
-  --set invenio.secret_key=$MEX_INVENIO_SECRET_KEY \
-  --set invenio.security_login_salt=$MEX_INVENIO_SECURITY_LOGIN_SALT \
-  --set invenio.csrf_secret_salt=$MEX_INVENIO_CSRF_SECRET_SALT \
-  --set rabbitmq.auth.password=$MEX_INVENIO_RABBITMQ_PW \
-  --set postgresql.auth.password=$MEX_INVENIO_POSTGRES_PW
+```bash
+# Extract password values from secret
+POSTGRESQL_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresql\.auth\.password}' | base64 -d)
+RABBITMQ_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.rabbitmq\.auth\.password}' | base64 -d)
+
+# Deploy with extracted secret values
+helm install -f values-overrides-mexhost.yaml -n mex mex-invenio . \
+  --set postgresql.auth.password="$POSTGRESQL_PASSWORD" \
+  --set postgresql.auth.username="invenio" \
+  --set postgresql.auth.database="invenio" \
+  --set rabbitmq.auth.password="$RABBITMQ_PASSWORD"
 ```
 
-Or the upgrade command:
+### 3. Available secret keys
+- `postgresql.auth.password`: PostgreSQL database password
+- `rabbitmq.auth.password`: RabbitMQ message queue password  
+- `INVENIO_SECRET_KEY`: Application secret key
+- `INVENIO_CSRF_SECRET_SALT`: CSRF protection salt
+- `INVENIO_SECURITY_LOGIN_SALT`: Login security salt
+- `MEX_IMPORT_*`: S3 import configuration (endpoint, credentials, bucket, etc.)
 
-```shell
-helm upgrade -f values-overrides-mex.yaml -n mex mex-invenio . \
-  --set invenio.secret_key=$MEX_INVENIO_SECRET_KEY \
-  --set invenio.security_login_salt=$MEX_INVENIO_SECURITY_LOGIN_SALT \
-  --set invenio.csrf_secret_salt=$MEX_INVENIO_CSRF_SECRET_SALT \
-  --set rabbitmq.auth.password=$MEX_INVENIO_RABBITMQ_PW \
-  --set postgresql.auth.password=$MEX_INVENIO_POSTGRES_PW
+### 4. Upgrade command
+```bash
+# Extract passwords
+POSTGRESQL_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresql\.auth\.password}' | base64 -d)
+RABBITMQ_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.rabbitmq\.auth\.password}' | base64 -d)
+
+# Upgrade deployment
+helm upgrade -f values-overrides-mexhost.yaml -n mex mex-invenio . \
+  --set postgresql.auth.password="$POSTGRESQL_PASSWORD" \
+  --set postgresql.auth.username="invenio" \
+  --set postgresql.auth.database="invenio" \
+  --set rabbitmq.auth.password="$RABBITMQ_PASSWORD"
 ```
 
 ## Checking on installation progress
@@ -343,4 +279,12 @@ Commands:
   users           User commands.
   vocabularies    Vocabularies command.
   webpack         Webpack commands
+```
+
+# Importer
+
+There's a cron job to run the import script nightly. You can also kick it off manually via:
+
+```bash
+kubectl create job --from=cronjob/mex-invenio-import-job manual-import-$(date +%F-%H%M) -n mex
 ```

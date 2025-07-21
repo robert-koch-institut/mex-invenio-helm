@@ -3,3 +3,6 @@ CLAUDE.md
 .deploy
 .idea
 /charts/*/charts/
+
+# Generated secrets (never commit actual secrets!)
+secrets/*-generated.yaml
