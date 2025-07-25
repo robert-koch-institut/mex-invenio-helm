@@ -60,16 +60,16 @@ importjob:
       cpu: 1000m
       memory: 2Gi
 
-# FIXME: temporarily re-enable the containerised sql until our host provides a postrgres 
 postgresql:
-  enabled: true
+  enabled: false
 
-# postgresqlExternal: 
-#   hostname: "<placeholder>"
-#   port: 5432
-#   username: "<placeholder>"
-#   password: "<placeholder>"
-#   databaseName: invenio
+# Provide these using --set argument, after pulling the secrets down from the vault:
+postgresqlExternal: 
+  hostname: "<placeholder>"
+  port: 5432
+  username: "<placeholder>"
+  password: "<placeholder>"
+  databaseName: "<placeholder>"
 
 haproxy:
   enabled: false
@@ -93,8 +93,8 @@ ingress:
     #cert-manager.io/issue-temporary-certificate: "true"
     #acme.cert-manager.io/http01-edit-in-place: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50G"
-    # IP whitelist:                                      steve            aga              hrafn           hrafn2          Richard          RKI             RKI
-    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32,146.90.80.159/32,82.37.113.44/32,86.129.227.2/32,78.144.22.157/32,77.87.228.64/29,77.87.224.97/29"
+    # IP whitelist:                                      steve            steve's mum (holiday)  aga              hrafn           hrafn2          Richard          RKI             RKI
+    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32,81.158.246.198/32,146.90.80.159/32,82.37.113.44/32,86.129.227.2/32,78.144.22.157/32,77.87.228.64/29,77.87.224.97/29"
 
 clusterissuer:
   email: "sysadmin+mex@cottagelabs.com"

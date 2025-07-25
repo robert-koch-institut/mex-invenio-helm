@@ -111,6 +111,7 @@ scripts/create-secrets.sh
 ### 2. Deploy with secrets
 Extract secret values and use `--set` flags:
 
+#### For containerised PostgreSQL deployment:
 ```bash
 # Extract password values from secret
 POSTGRESQL_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresql\.auth\.password}' | base64 -d)
@@ -124,6 +125,24 @@ helm install -f values-overrides-mexhost.yaml -n mex mex-invenio . \
   --set rabbitmq.auth.password="$RABBITMQ_PASSWORD"
 ```
 
+#### For external PostgreSQL deployment:
+```bash
+# Extract secret values for external PostgreSQL
+POSTGRESQL_HOSTNAME=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.hostname}' | base64 -d)
+RABBITMQ_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.rabbitmq\.auth\.password}' | base64 -d)
+POSTGRESQL_DATABASE=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.databaseName}' | base64 -d)
+POSTGRESQL_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.password}' | base64 -d)
+POSTGRESQL_USERNAME=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.username}' | base64 -d)
+
+# Deploy with extracted secret values
+helm install -f values-overrides-mexhost.yaml -n mex mex-invenio . \
+  --set postgresqlExternal.hostname="$POSTGRESQL_HOSTNAME" \
+  --set rabbitmq.auth.password="$RABBITMQ_PASSWORD" \
+  --set postgresqlExternal.databaseName="$POSTGRESQL_DATABASE" \
+  --set postgresqlExternal.password="$POSTGRESQL_PASSWORD" \
+  --set postgresqlExternal.username="$POSTGRESQL_USERNAME"
+```
+
 ### 3. Available secret keys
 - `postgresql.auth.password`: PostgreSQL database password
 - `rabbitmq.auth.password`: RabbitMQ message queue password  
@@ -132,7 +151,9 @@ helm install -f values-overrides-mexhost.yaml -n mex mex-invenio . \
 - `INVENIO_SECURITY_LOGIN_SALT`: Login security salt
 - `MEX_IMPORT_*`: S3 import configuration (endpoint, credentials, bucket, etc.)
 
-### 4. Upgrade command
+### 4. Upgrade commands
+
+#### For containerised PostgreSQL deployment:
 ```bash
 # Extract passwords
 POSTGRESQL_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresql\.auth\.password}' | base64 -d)
@@ -144,6 +165,24 @@ helm upgrade -f values-overrides-mexhost.yaml -n mex mex-invenio . \
   --set postgresql.auth.username="invenio" \
   --set postgresql.auth.database="invenio" \
   --set rabbitmq.auth.password="$RABBITMQ_PASSWORD"
+```
+
+#### For external PostgreSQL deployment:
+```bash
+# Extract secret values for external PostgreSQL
+POSTGRESQL_HOSTNAME=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.hostname}' | base64 -d)
+RABBITMQ_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.rabbitmq\.auth\.password}' | base64 -d)
+POSTGRESQL_DATABASE=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.databaseName}' | base64 -d)
+POSTGRESQL_PASSWORD=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.password}' | base64 -d)
+POSTGRESQL_USERNAME=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath='{.data.postgresqlExternal\.username}' | base64 -d)
+
+# Upgrade deployment
+helm upgrade -f values-overrides-mexhost.yaml -n mex mex-invenio . \
+  --set postgresqlExternal.hostname="$POSTGRESQL_HOSTNAME" \
+  --set rabbitmq.auth.password="$RABBITMQ_PASSWORD" \
+  --set postgresqlExternal.databaseName="$POSTGRESQL_DATABASE" \
+  --set postgresqlExternal.password="$POSTGRESQL_PASSWORD" \
+  --set postgresqlExternal.username="$POSTGRESQL_USERNAME"
 ```
 
 ## Checking on installation progress

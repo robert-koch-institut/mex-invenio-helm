@@ -71,11 +71,11 @@ fi
 # Prompt for MEX Import configuration
 echo
 echo -e "${YELLOW}MEX Import Configuration:${NC}"
-read -p "S3 Endpoint URL: " MEX_IMPORT_ENDPOINT_URL
-read -p "AWS Access Key ID: " MEX_IMPORT_AWS_KEY_ID
-read -s -p "AWS Secret Access Key: " MEX_IMPORT_AWS_SECRET
+read -p "Storage Endpoint URL: " MEX_IMPORT_ENDPOINT_URL
+read -p "Storage Access Key ID: " MEX_IMPORT_AWS_KEY_ID
+read -s -p "Storage Secret Access Key: " MEX_IMPORT_AWS_SECRET
 echo
-read -p "S3 Bucket name: " MEX_IMPORT_BUCKET
+read -p "Storage Bucket name: " MEX_IMPORT_BUCKET
 read -p "Import account email: " MEX_IMPORT_EMAIL
 
 # Create the secret and save to file
@@ -84,26 +84,26 @@ mkdir -p secrets
 
 # Build kubectl command with core secrets
 KUBECTL_CMD="kubectl create secret generic $SECRET_NAME -n $NAMESPACE \
-  --from-literal=INVENIO_SECRET_KEY=\"$INVENIO_SECRET_KEY\" \
-  --from-literal=INVENIO_SECURITY_LOGIN_SALT=\"$INVENIO_SECURITY_LOGIN_SALT\" \
-  --from-literal=INVENIO_CSRF_SECRET_SALT=\"$INVENIO_CSRF_SECRET_SALT\" \
-  --from-literal=rabbitmq.auth.password=\"$RABBITMQ_PASSWORD\" \
-  --from-literal=MEX_IMPORT_ENDPOINT_URL=\"$MEX_IMPORT_ENDPOINT_URL\" \
-  --from-literal=MEX_IMPORT_AWS_KEY_ID=\"$MEX_IMPORT_AWS_KEY_ID\" \
-  --from-literal=MEX_IMPORT_AWS_SECRET=\"$MEX_IMPORT_AWS_SECRET\" \
-  --from-literal=MEX_IMPORT_BUCKET=\"$MEX_IMPORT_BUCKET\" \
-  --from-literal=MEX_IMPORT_EMAIL=\"$MEX_IMPORT_EMAIL\""
+  --from-literal=INVENIO_SECRET_KEY='$INVENIO_SECRET_KEY' \
+  --from-literal=INVENIO_SECURITY_LOGIN_SALT='$INVENIO_SECURITY_LOGIN_SALT' \
+  --from-literal=INVENIO_CSRF_SECRET_SALT='$INVENIO_CSRF_SECRET_SALT' \
+  --from-literal=rabbitmq.auth.password='$RABBITMQ_PASSWORD' \
+  --from-literal=MEX_IMPORT_ENDPOINT_URL='$MEX_IMPORT_ENDPOINT_URL' \
+  --from-literal=MEX_IMPORT_AWS_KEY_ID='$MEX_IMPORT_AWS_KEY_ID' \
+  --from-literal=MEX_IMPORT_AWS_SECRET='$MEX_IMPORT_AWS_SECRET' \
+  --from-literal=MEX_IMPORT_BUCKET='$MEX_IMPORT_BUCKET' \
+  --from-literal=MEX_IMPORT_EMAIL='$MEX_IMPORT_EMAIL'"
 
 # Add PostgreSQL secrets based on configuration choice
 if [[ $USE_EXTERNAL == true ]]; then
     KUBECTL_CMD="$KUBECTL_CMD \
-  --from-literal=postgresqlExternal.hostname=\"$POSTGRESQL_HOSTNAME\" \
-  --from-literal=postgresqlExternal.username=\"$POSTGRESQL_USERNAME\" \
-  --from-literal=postgresqlExternal.password=\"$POSTGRESQL_PASSWORD\" \
-  --from-literal=postgresqlExternal.databaseName=\"$POSTGRESQL_DATABASE\""
+  --from-literal=postgresqlExternal.hostname='$POSTGRESQL_HOSTNAME' \
+  --from-literal=postgresqlExternal.username='$POSTGRESQL_USERNAME' \
+  --from-literal=postgresqlExternal.password='$POSTGRESQL_PASSWORD' \
+  --from-literal=postgresqlExternal.databaseName='$POSTGRESQL_DATABASE'"
 else
     KUBECTL_CMD="$KUBECTL_CMD \
-  --from-literal=postgresql.auth.password=\"$POSTGRESQL_PASSWORD\""
+  --from-literal=postgresql.auth.password='$POSTGRESQL_PASSWORD'"
 fi
 
 # Execute the command
