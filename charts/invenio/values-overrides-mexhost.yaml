@@ -1,10 +1,8 @@
 invenio:
   init: true  # initiates db, index, and admin roles
-  #hostname: "stage.429354.projects.prod.gardener.get-cloud.io"
   hostname: "mex-stage.rki.de"
   default_users:
-    steve@cottagelabs.com: "testing"
-    hrafn@cottagelabs.com: "testing"
+    mex@rki.de: "<placeholder>
   existingSecret: "mex-invenio-secrets"
   create_fixtures: true
   extraConfig:
@@ -13,22 +11,23 @@ invenio:
     # MEX import secrets now pulled from mex-invenio-secrets:
     # MEX_IMPORT_ENDPOINT_URL, MEX_IMPORT_AWS_KEY_ID, MEX_IMPORT_AWS_SECRET, 
     # MEX_IMPORT_BUCKET, MEX_IMPORT_EMAIL
-  #  INVENIO_MAIL_SERVER: "sandbox.smtp.mailtrap.io"
-  #  INVENIO_MAIL_PORT: "2525"
-  #  INVENIO_MAIL_USERNAME: "REPLACE-ME"
-  #  INVENIO_MAIL_PASSWORD: "REPLACE-ME"
-  #  INVENIO_MAIL_USE_SSL: "False"
-  #  INVENIO_MAIL_USE_TLS: "True"
+    # INVENIO_MAIL_SERVER: "sandbox.smtp.mailtrap.io"
+    # INVENIO_MAIL_PORT: "2525"
+    # INVENIO_MAIL_USERNAME: "REPLACE-ME"
+    # INVENIO_MAIL_PASSWORD: "REPLACE-ME"
+    # INVENIO_MAIL_USE_SSL: "False"
+    # INVENIO_MAIL_USE_TLS: "True"
   datacite:
     enabled: false
 
 web:
   image: "ghcr.io/robert-koch-institut/mex-invenio:5fa766327714c2c9e1549f57a055212f2fb13efc"
   imagePullPolicy: Always
+  loadBalancerIP: "<placeholder>"
   annotations:
     loadbalancer.openstack.org/keep-floatingip: "true"
     #loadbalancer.openstack.org/proxy-protocol: "false"
-    loadbalancer.openstack.org/load-balancer-address: "78.138.70.40"
+    loadbalancer.openstack.org/load-balancer-address: "<placeholder>"
     loadbalancer.openstack.org/hostname: "mex-stage.rki.de"
   replicas: 5
   readinessProbe:
@@ -93,8 +92,7 @@ ingress:
     #cert-manager.io/issue-temporary-certificate: "true"
     #acme.cert-manager.io/http01-edit-in-place: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50G"
-    # IP whitelist:                                      steve            steve's mum (holiday)  aga              hrafn           hrafn2          Richard          RKI             RKI
-    nginx.ingress.kubernetes.io/whitelist-source-range: "77.98.243.228/32,81.158.246.198/32,146.90.80.159/32,82.37.113.44/32,86.129.227.2/32,78.144.22.157/32,77.87.228.64/29,77.87.224.97/29"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "<placeholder>"
 
 clusterissuer:
-  email: "sysadmin+mex@cottagelabs.com"
+  email: "mex@rki.de"
