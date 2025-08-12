@@ -91,6 +91,7 @@ ingress:
     #cert-manager.io/cluster-issuer: "letsencrypt-production"
     #cert-manager.io/issue-temporary-certificate: "true"
     #acme.cert-manager.io/http01-edit-in-place: "true"
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50G"
     nginx.ingress.kubernetes.io/whitelist-source-range: "<placeholder>"
 
