@@ -2,7 +2,7 @@ invenio:
   init: true  # initiates db, index, and admin roles
   hostname: "mex-stage.rki.de"
   default_users:
-    mex@rki.de: "<placeholder>
+    mex@rki.de: "<placeholder>"
   existingSecret: "mex-invenio-secrets"
   create_fixtures: true
   extraConfig:
@@ -21,7 +21,7 @@ invenio:
     enabled: false
 
 web:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:5fa766327714c2c9e1549f57a055212f2fb13efc"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:ec16cb3fad391b8d1c1f8c4206a764c0401ee494"
   imagePullPolicy: Always
   loadBalancerIP: "<placeholder>"
   annotations:
@@ -44,7 +44,7 @@ web:
     timeoutSeconds: 10
 
 worker:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:5fa766327714c2c9e1549f57a055212f2fb13efc"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:ec16cb3fad391b8d1c1f8c4206a764c0401ee494"
   imagePullPolicy: Always
   replicas: 1
 
