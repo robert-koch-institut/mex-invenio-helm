@@ -153,6 +153,10 @@ helm install -f values-overrides-mexhost.yaml -n mex mex-invenio . \
 
 ### 4. Upgrade commands
 
+Changes such as replacing the image hash (for a code update) will trigger a rolling-restart of the web and worker pods.
+New ones will appear with a new hash name, and the old ones will terminate in turn. This only works if the charts use full image hashes; `:latest`
+doesn't constitute a change to the charts so won't recognise the update and perform the rolling restart.
+
 #### For containerised PostgreSQL deployment:
 ```bash
 # Extract passwords
@@ -250,6 +254,13 @@ You can delete all pvcs with this command:
 
 ```bash
 kubectl delete pvc -n mex --all
+```
+
+If you're running the external postgres, you may not be able to reinstall the deployment due to the old tables persisting. Before uninstalling the release, you should log into a web or worker pod and drop the tables via the `invenio` command:
+
+```bash
+kubectl -n mex exec --stdin --tty web-57c8476cf8-2kvvt -- /bin/bash
+invenio db drop
 ```
 
 ## Scale
