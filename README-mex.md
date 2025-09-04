@@ -191,8 +191,21 @@ helm upgrade -f values-overrides-mexhost.yaml -n mex mex-invenio . \
 
 ## Checking on installation progress
 
+Remember to check pods in the expected namespace (below shows a rolling restart in-progress, see the image change)
+
 ```bash
-kubectl get pods --namespace invenio
+kubectl get pods --namespace mex
+
+NAME                                       READY   STATUS        RESTARTS         AGE
+...
+mex-invenio-web-65795577d7-2h26l           2/2     Running             0          4h18m
+mex-invenio-web-65795577d7-4ps6c           2/2     Running             0          4h18m
+mex-invenio-web-65795577d7-5wlgg           2/2     Running             0          4h18m
+mex-invenio-web-65795577d7-855p9           2/2     Running             0          4h14m
+mex-invenio-web-78b7656dc9-4tfb8           0/2     Init:0/1            0          29s
+mex-invenio-web-78b7656dc9-lkz67           0/2     Init:0/1            0          29s
+mex-invenio-web-78b7656dc9-wbtb2           0/2     Init:0/1            0          29s
+...
 ```
 
 Check the `STATUS` and `READY` columns - if they are stuck in a `Pending` state your cluster may not have enough
@@ -207,8 +220,7 @@ Every 10.0s: kubectl get pods -n mex
 ```
 
 Note that the _bitnami_ charts for OpenSearch and Redis are using their default configs, which includes replicas. These
-could be pared down at
-the expense of some redundancy.
+could be pared down at the expense of some redundancy.
 
 The `install-init` container is temporary, i.e. it runs its job and then shuts down.
 
