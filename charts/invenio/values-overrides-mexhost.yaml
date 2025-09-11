@@ -21,7 +21,7 @@ invenio:
     enabled: false
 
 web:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:5dfe5b086e2b92f13ebcc1e1cc0d8fd5d7d9e50a"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:47464277938610aade49c54d060f33f860da5ead"
   imagePullPolicy: Always
   loadBalancerIP: "<placeholder>"
   annotations:
@@ -44,7 +44,7 @@ web:
     timeoutSeconds: 10
 
 worker:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:5dfe5b086e2b92f13ebcc1e1cc0d8fd5d7d9e50a"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:47464277938610aade49c54d060f33f860da5ead"
   imagePullPolicy: Always
   replicas: 1
 
