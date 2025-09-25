@@ -29,6 +29,11 @@ web:
     #loadbalancer.openstack.org/proxy-protocol: "false"
     loadbalancer.openstack.org/load-balancer-address: "<placeholder>"
     loadbalancer.openstack.org/hostname: "mex-stage.rki.de"
+    # LoadBalancer timeout configuration for slow MEX record pages (5 minutes)
+    loadbalancer.openstack.org/timeout-client-data: "300000"
+    loadbalancer.openstack.org/timeout-member-connect: "60000"
+    loadbalancer.openstack.org/timeout-member-data: "300000"
+    loadbalancer.openstack.org/timeout-tcp-inspect: "60000"
   replicas: 5
   readinessProbe:
     failureThreshold: 5
@@ -94,6 +99,10 @@ ingress:
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "50G"
     nginx.ingress.kubernetes.io/whitelist-source-range: "<placeholder>"
+    # Nginx timeout configuration for slow MEX record pages (5 minutes)
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
 
 clusterissuer:
   email: "mex@rki.de"
