@@ -64,7 +64,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 */}}
 {{- define "invenio.redis.hostname" -}}
   {{- if .Values.redis.enabled }}
-    {{- printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}
+    {{- printf "%s-redis" .Release.Name -}}
   {{- else }}
       {{- required "Missing .Values.redisExternal.hostname" .Values.redisExternal.hostname }}
   {{- end }}
@@ -121,11 +121,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 ##########################     RabbitMQ AMQP port     ##########################
 {{/*
-  This template renders the AMQP port number for RabbitMQ.
+  This template renders the AMQP port number for RabbitMQ.  (Changed from ports.ampq for bitnami)
 */}}
 {{- define "invenio.rabbitmq.amqpPort" -}}
   {{- if .Values.rabbitmq.enabled }}
-    {{- required "Missing .Values.rabbitmq.service.ports.amqp" .Values.rabbitmq.service.ports.amqp -}}
+    {{- required "Missing .Values.rabbitmq.service.amqpPort" .Values.rabbitmq.service.amqpPort -}}
   {{- else }}
     {{- required "Missing .Values.rabbitmqExternal.amqpPort" .Values.rabbitmqExternal.amqpPort -}}
   {{- end }}
@@ -133,11 +133,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 #######################     RabbitMQ management port     #######################
 {{/*
-  This template renders the management port number for RabbitMQ.
+  This template renders the management port number for RabbitMQ.  (Changed from ports.manager for bitnami)
 */}}
 {{- define "invenio.rabbitmq.managementPort" -}}
   {{- if .Values.rabbitmq.enabled }}
-    {{- required "Missing .Values.rabbitmq.service.ports.manager" .Values.rabbitmq.service.ports.manager -}}
+    {{- required "Missing .Values.rabbitmq.service.managementPort" .Values.rabbitmq.service.managementPort -}}
   {{- else }}
     {{- required "Missing .Values.rabbitmqExternal.managementPort" .Values.rabbitmqExternal.managementPort -}}
   {{- end }}
@@ -149,7 +149,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 */}}
 {{- define "invenio.rabbitmq.hostname" -}}
   {{- if .Values.rabbitmq.enabled }}
-    {{- include "common.names.fullname" .Subcharts.rabbitmq -}}
+    {{- include "rabbitmq.fullname" .Subcharts.rabbitmq -}}
   {{- else }}
     {{- required "Missing .Values.rabbitmqExternal.hostname" .Values.rabbitmqExternal.hostname }}
   {{- end }}
@@ -211,7 +211,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 */}}
 {{- define "invenio.opensearch.hostname" -}}
   {{- if .Values.opensearch.enabled }}
-    {{- include "opensearch.service.name" .Subcharts.opensearch -}}
+    {{- printf "%s-opensearch-master" .Release.Name -}}
   {{- else }}
     {{- required "Missing .Values.opensearchExternal.hostname" .Values.opensearchExternal.hostname -}}
   {{- end }}
@@ -330,7 +330,7 @@ INVENIO_CELERY_RESULT_BACKEND: 'redis://{{ include "invenio.redis.hostname" . }}
 INVENIO_IIIF_CACHE_REDIS_URL: 'redis://{{ include "invenio.redis.hostname" . }}:6379/0'
 INVENIO_RATELIMIT_STORAGE_URI: 'redis://{{ include "invenio.redis.hostname" . }}:6379/3'
 INVENIO_COMMUNITIES_IDENTITIES_CACHE_REDIS_URL: 'redis://{{ include "invenio.redis.hostname" . }}:6379/4'
-INVENIO_SEARCH_HOSTS: {{ printf "[{'host': '%s'}]" (include "invenio.opensearch.hostname" .) | quote }}
+INVENIO_SEARCH_HOSTS: {{ printf "[{'host': '%s', 'port': 9200}]" (include "invenio.opensearch.hostname" .) | quote }}
 INVENIO_SITE_HOSTNAME: '{{ include "invenio.hostname" $ }}'
 INVENIO_SITE_UI_URL: 'https://{{ include "invenio.hostname" $ }}'
 INVENIO_SITE_API_URL: 'https://{{ include "invenio.hostname" $ }}/api'

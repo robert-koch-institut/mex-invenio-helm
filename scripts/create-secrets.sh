@@ -50,6 +50,7 @@ INVENIO_SECRET_KEY=$(uuidgen)
 INVENIO_SECURITY_LOGIN_SALT=$(uuidgen)
 INVENIO_CSRF_SECRET_SALT=$(uuidgen)
 RABBITMQ_PASSWORD=$(pwgen -N 1 27)
+OPENSEARCH_INITIAL_ADMIN_PASSWORD=$(pwgen -N 1 17)
 
 # Prompt for PostgreSQL configuration
 echo
@@ -88,6 +89,7 @@ KUBECTL_CMD="kubectl create secret generic $SECRET_NAME -n $NAMESPACE \
   --from-literal=INVENIO_SECURITY_LOGIN_SALT='$INVENIO_SECURITY_LOGIN_SALT' \
   --from-literal=INVENIO_CSRF_SECRET_SALT='$INVENIO_CSRF_SECRET_SALT' \
   --from-literal=rabbitmq.auth.password='$RABBITMQ_PASSWORD' \
+  --from-literal=OPENSEARCH_INITIAL_ADMIN_PASSWORD='$OPENSEARCH_INITIAL_ADMIN_PASSWORD' \
   --from-literal=MEX_IMPORT_ENDPOINT_URL='$MEX_IMPORT_ENDPOINT_URL' \
   --from-literal=MEX_IMPORT_AWS_KEY_ID='$MEX_IMPORT_AWS_KEY_ID' \
   --from-literal=MEX_IMPORT_AWS_SECRET='$MEX_IMPORT_AWS_SECRET' \
@@ -118,6 +120,7 @@ echo "├── INVENIO_SECRET_KEY: $(echo $INVENIO_SECRET_KEY | sed 's/./*/g')"
 echo "├── INVENIO_SECURITY_LOGIN_SALT: $(echo $INVENIO_SECURITY_LOGIN_SALT | sed 's/./*/g')"
 echo "├── INVENIO_CSRF_SECRET_SALT: $(echo $INVENIO_CSRF_SECRET_SALT | sed 's/./*/g')"
 echo "├── rabbitmq.auth.password: $(echo $RABBITMQ_PASSWORD | sed 's/./*/g')"
+echo "├── OPENSEARCH_INITIAL_ADMIN_PASSWORD: $(echo $OPENSEARCH_INITIAL_ADMIN_PASSWORD | sed 's/./*/g')"
 if [[ $USE_EXTERNAL == true ]]; then
     echo "├── postgresqlExternal.hostname: $(echo $POSTGRESQL_HOSTNAME | sed 's/./*/g')"
     echo "├── postgresqlExternal.username: $(echo $POSTGRESQL_USERNAME | sed 's/./*/g')"

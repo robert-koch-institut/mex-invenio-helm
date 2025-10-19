@@ -145,11 +145,35 @@ helm install -f values-overrides-mexhost.yaml -n mex mex-invenio . \
 
 ### 3. Available secret keys
 - `postgresql.auth.password`: PostgreSQL database password
-- `rabbitmq.auth.password`: RabbitMQ message queue password  
+- `rabbitmq.auth.password`: RabbitMQ message queue password
+- `OPENSEARCH_INITIAL_ADMIN_PASSWORD`: OpenSearch initial admin password (currently unused - see note below)
 - `INVENIO_SECRET_KEY`: Application secret key
 - `INVENIO_CSRF_SECRET_SALT`: CSRF protection salt
 - `INVENIO_SECURITY_LOGIN_SALT`: Login security salt
 - `MEX_IMPORT_*`: S3 import configuration (endpoint, credentials, bucket, etc.)
+
+#### OpenSearch Security Status
+
+**Current State (Staging)**: OpenSearch security is **disabled** for staging environment.
+
+**Rationale**:
+- The OpenSearch project chart (v2.30.1) uses OpenSearch 2.18.0 which has security enabled by default
+- Previous Bitnami chart (v1.4.0) had security disabled by default, so Invenio was connecting without authentication
+- Attempting to enable security revealed a configuration limitation:
+  - Invenio's `INVENIO_SEARCH_HOSTS` configuration is set via ConfigMap as a string
+  - Cannot dynamically inject `OPENSEARCH_INITIAL_ADMIN_PASSWORD` from environment variables into this string
+  - Python `__import__('os').environ.get()` approach fails because the entire dictionary is treated as a quoted literal, not evaluated as Python code
+  - Invenio expects dictionary format with `http_auth` parameter, not URL strings with embedded credentials
+
+**To Enable Security Properly**:
+Enabling OpenSearch security requires application-level changes in the MEX Invenio codebase:
+1. Modify the application to read `OPENSEARCH_INITIAL_ADMIN_PASSWORD` as a separate environment variable
+2. Construct the OpenSearch connection with authentication in Python code (not via YAML config string)
+3. This would apply to all pods: web, worker, worker-beat, and import-job
+
+**Secret Retention**: The `OPENSEARCH_INITIAL_ADMIN_PASSWORD` secret is retained in the Kubernetes secret for future use when security is properly implemented.
+
+**Configuration Location**: See `values-overrides-mexhost-staging.yaml` where security is explicitly disabled with commented-out `extraEnvs` configuration showing how to pass the password when ready.
 
 ### 4. Upgrade commands
 
@@ -231,6 +255,8 @@ To watch the logs from e.g. all web containers (running the Invenio app):
 ```bash
 kubectl logs -f -l app=web -n mex --max-log-requests=6
 ```
+
+Check the labels on the pod type you need with `kubectl -n mex describe pod ...` - the label you need may be `app.kubernetes.io/component=web` rather than `app=web`.
 
 ## Teardown
 

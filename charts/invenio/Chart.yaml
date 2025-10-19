@@ -19,18 +19,17 @@ maintainers:
 dependencies:
   - name: opensearch
     condition: opensearch.enabled
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: "1.4.0"
-  - name: postgresql
-    condition: postgresql.enabled
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: "14.3.3"
+    repository: https://opensearch-project.github.io/helm-charts
+    version: "2.30.1"   # OpenSearch version 2.18.0, same as the bitnami 14.3.3 previously used
+  # - name: postgres  # Note bitnami had name postgresql
+  #   condition: postgresql.enabled  # Keep your existing condition
+  #   repository: "oci://registry-1.docker.io/cloudpirates"
+  #   version: "0.5.0"  # PostgreSQL 17.6 (upgrade from 16.2.0)
   - name: rabbitmq
     condition: rabbitmq.enabled
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    #version: "12.9.3"
-    version: "16.0.3"
+    repository: "oci://registry-1.docker.io/cloudpirates"
+    version: "0.3.3"  # RabbitMQ 4.1.4 (upgrade from 4.1.0)
   - name: redis
     condition: redis.enabled
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    version: "18.12.0"
+    repository: "oci://registry-1.docker.io/cloudpirates"
+    version: "0.6.3"  # Redis 8.2.2 (upgrade from 7.2.4)
