@@ -7,6 +7,7 @@ metadata:
     {{- include "invenio.labels" . | nindent 4 }}
 spec:
   schedule: "0 5 * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 7200
