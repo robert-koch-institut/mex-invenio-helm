@@ -260,46 +260,78 @@ Check the labels on the pod type you need with `kubectl -n mex describe pod ...`
 
 ## Teardown
 
-If you want to uninstall you can run:
+### Complete Teardown Procedure
+
+For a complete teardown, follow these steps in order:
+
+#### 1. Drop database tables (required for external PostgreSQL only)
+
+**If you're using external PostgreSQL**, you must drop the tables before uninstalling. Otherwise, old tables will persist and prevent a clean reinstall. (Skip this step if using containerised PostgreSQL, as the database will be deleted with the PVCs.)
+
+First, get a web pod name:
+```bash
+kubectl get pods -n mex -l app.kubernetes.io/component=web
+```
+
+Then execute the drop command (replace `<web-pod-name>` with actual pod name):
+```bash
+kubectl -n mex exec <web-pod-name> -c web -- invenio db drop --yes-i-know
+```
+
+Or use this one-liner to automatically select the first web pod:
+```bash
+WEB_POD=$(kubectl get pods -n mex -l app.kubernetes.io/component=web -o jsonpath='{.items[0].metadata.name}')
+kubectl -n mex exec $WEB_POD -c web -- invenio db drop --yes-i-know
+```
+
+#### 2. Uninstall the Helm release
 
 ```bash
 helm uninstall mex-invenio -n mex
 ```
 
-Verify they're all destroyed with `kubectl get pods -n mex`
-
-If you're redeploying and the `install-init` pod keeps reappearing, that means it's being recreated by the job. You can
-remove that explicitly via:
-
+Verify pods are terminating:
 ```bash
-kubectl delete job install-init -n mex
+kubectl get pods -n mex
 ```
 
-Uninstalling a helm installation does not remove the 11 persistent volumes (PVs) and claims (PVCs) created. To see the
-pvcs run
+#### 3. Clean up leftover jobs
+
+If the `install-init` job persists, delete it explicitly:
 
 ```bash
-kubectl get pv -n mex
+kubectl delete job mex-invenio-install-init -n mex
 ```
 
-and
+Or delete all jobs:
+```bash
+kubectl delete job -n mex --all
+```
+
+#### 4. Delete Persistent Volume Claims (PVCs)
+
+Uninstalling a Helm release does not remove PVCs. To see existing PVCs:
 
 ```bash
 kubectl get pvc -n mex
 ```
 
-You can delete all pvcs with this command:
+Delete all PVCs (this will permanently delete all data in OpenSearch, RabbitMQ, Redis, and containerised PostgreSQL if enabled):
 
 ```bash
 kubectl delete pvc -n mex --all
 ```
 
-If you're running the external postgres, you may not be able to reinstall the deployment due to the old tables persisting. Before uninstalling the release, you should log into a web or worker pod and drop the tables via the `invenio` command:
+#### 5. Verify complete cleanup
 
 ```bash
-kubectl -n mex exec --stdin --tty web-57c8476cf8-2kvvt -- /bin/bash
-invenio db drop
+kubectl get all -n mex
+kubectl get pvc -n mex
 ```
+
+Both commands should return "No resources found in mex namespace."
+
+**Note:** The Kubernetes secrets (`mex-invenio-secrets`) are preserved and will be reused on the next installation.
 
 ## Scale
 

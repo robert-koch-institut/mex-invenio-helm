@@ -34,7 +34,7 @@ web:
     loadbalancer.openstack.org/timeout-member-connect: "60000"
     loadbalancer.openstack.org/timeout-member-data: "300000"
     loadbalancer.openstack.org/timeout-tcp-inspect: "60000"
-  replicas: 5
+  replicas: 4
   readinessProbe:
     failureThreshold: 5
     initialDelaySeconds: 10
@@ -48,10 +48,11 @@ web:
     successThreshold: 1
     timeoutSeconds: 10
 
+# We want a high number of worker replicas to handle MEX import
 worker:
   image: "ghcr.io/robert-koch-institut/mex-invenio:4afae210b050b96f3c811e7060835373ba4a2811"
   imagePullPolicy: Always
-  replicas: 1
+  replicas: 4
 
 importjob:
   enabled: true
@@ -74,6 +75,60 @@ postgresqlExternal:
   username: "<placeholder>"
   password: "<placeholder>"
   databaseName: "<placeholder>"
+
+opensearch:
+  enabled: true
+  # Naming: Use pattern <release-name>-opensearch for consistency
+  # For release "mex-invenio", this creates services: mex-invenio-opensearch-master
+  clusterName: mex-invenio-opensearch
+  nodeGroup: master
+  masterService: mex-invenio-opensearch-master
+  persistence:
+    size: 8Gi
+  # Increased heap size for better search performance
+  # Setting heap to 2GB (50% of 4GB memory limit)
+  opensearchJavaOpts: "-Xms2g -Xmx2g"
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "4Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+  # Security disabled, equivalent to bitnami charts - TODO: Enable with proper auth mechanism
+  # extraEnvs:
+  #   - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: mex-invenio-secrets
+  #         key: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+  config:
+    opensearch.yml: |
+      cluster.name: mex-invenio-opensearch
+      network.host: 0.0.0.0
+      plugins:
+        security:
+          disabled: true
+
+rabbitmq:
+  enabled: true
+  auth:
+    password: ""  # Set via --set during deployment
+  resources:
+    limits:
+      cpu: "1"
+      memory: 2Gi
+    requests:
+      cpu: "1"
+      memory: 2Gi
+  persistence:
+    size: 8Gi
+  config:
+    extraConfiguration: |
+      # Increase consumer timeout to 2 hours (7200000 ms) for long-running MEX import tasks
+      # Default in RabbitMQ 4.x is 30 minutes (1800000 ms)
+      # This prevents "PRECONDITION_FAILED - delivery acknowledgement timed out" errors
+      consumer_timeout = 7200000
 
 haproxy:
   enabled: false
