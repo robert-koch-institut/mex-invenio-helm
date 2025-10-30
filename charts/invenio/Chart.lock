@@ -3,10 +3,10 @@ dependencies:
   repository: https://opensearch-project.github.io/helm-charts
   version: 2.30.1
 - name: rabbitmq
-  repository: oci://registry-1.docker.io/cloudpirates
-  version: 0.3.3
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 16.0.3
 - name: redis
-  repository: oci://registry-1.docker.io/cloudpirates
-  version: 0.6.3
-digest: sha256:c843feb01aab0696744f1ce025d7ff2a4413ea6bb1036baf64f1618ddeea49b5
-generated: "2025-10-17T16:10:42.658951693+01:00"
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 18.12.0
+digest: sha256:ff919fcb9e88a86163fb77df158ca6cf1ab190a535978283e30106336748159f
+generated: "2025-10-30T16:43:44.029695033Z"

@@ -64,7 +64,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 */}}
 {{- define "invenio.redis.hostname" -}}
   {{- if .Values.redis.enabled }}
-    {{- printf "%s-redis" .Release.Name -}}
+    {{- printf "%s-master" (include "common.names.fullname" .Subcharts.redis) }}
   {{- else }}
       {{- required "Missing .Values.redisExternal.hostname" .Values.redisExternal.hostname }}
   {{- end }}
@@ -121,11 +121,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 ##########################     RabbitMQ AMQP port     ##########################
 {{/*
-  This template renders the AMQP port number for RabbitMQ.  (Changed from ports.ampq for bitnami)
+  This template renders the AMQP port number for RabbitMQ.
 */}}
 {{- define "invenio.rabbitmq.amqpPort" -}}
   {{- if .Values.rabbitmq.enabled }}
-    {{- required "Missing .Values.rabbitmq.service.amqpPort" .Values.rabbitmq.service.amqpPort -}}
+    {{- required "Missing .Values.rabbitmq.service.ports.amqp" .Values.rabbitmq.service.ports.amqp -}}
   {{- else }}
     {{- required "Missing .Values.rabbitmqExternal.amqpPort" .Values.rabbitmqExternal.amqpPort -}}
   {{- end }}
@@ -133,11 +133,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 #######################     RabbitMQ management port     #######################
 {{/*
-  This template renders the management port number for RabbitMQ.  (Changed from ports.manager for bitnami)
+  This template renders the management port number for RabbitMQ.
 */}}
 {{- define "invenio.rabbitmq.managementPort" -}}
   {{- if .Values.rabbitmq.enabled }}
-    {{- required "Missing .Values.rabbitmq.service.managementPort" .Values.rabbitmq.service.managementPort -}}
+    {{- required "Missing .Values.rabbitmq.service.ports.manager" .Values.rabbitmq.service.ports.manager -}}
   {{- else }}
     {{- required "Missing .Values.rabbitmqExternal.managementPort" .Values.rabbitmqExternal.managementPort -}}
   {{- end }}
@@ -149,7 +149,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 */}}
 {{- define "invenio.rabbitmq.hostname" -}}
   {{- if .Values.rabbitmq.enabled }}
-    {{- include "rabbitmq.fullname" .Subcharts.rabbitmq -}}
+    {{- include "common.names.fullname" .Subcharts.rabbitmq -}}
   {{- else }}
     {{- required "Missing .Values.rabbitmqExternal.hostname" .Values.rabbitmqExternal.hostname }}
   {{- end }}
