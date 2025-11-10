@@ -341,6 +341,34 @@ To scale web or workers, you can run:
 kubectl scale deployment --replicas=5 web -n mex
 ```
 
+## IP Whitelist Management
+
+The ingress is configured with an IP whitelist to restrict access. To manage the whitelist directly on the cluster:
+
+### View current whitelist
+
+```bash
+kubectl get ingress mex-invenio -n mex -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range}'
+```
+
+### Add an IP to the whitelist
+
+Replace the IP list with your desired whitelist (add your new IP to the existing list):
+
+```bash
+kubectl patch ingress mex-invenio -n mex --type=json -p='[{"op": "replace", "path": "/metadata/annotations/nginx.ingress.kubernetes.io~1whitelist-source-range", "value": "5.181.57.18/32,77.98.243.228/32,81.158.246.198/32,146.90.80.159/32,82.37.113.44/32,86.129.227.2/32,78.144.22.157/32,193.175.81.14"}]'
+```
+
+### Verify the change
+
+```bash
+kubectl get ingress mex-invenio -n mex -o jsonpath='{.metadata.annotations.nginx\.ingress\.kubernetes\.io/whitelist-source-range}'
+```
+
+The change takes effect within a few seconds. The nginx ingress controller will automatically reload with the new whitelist.
+
+**Note:** This is a runtime patch. To persist changes for future deployments, update the `nginx.ingress.kubernetes.io/whitelist-source-range` annotation in your `values-overrides-*.yaml` file.
+
 # Administration - Run commands in pods
 
 Observe which pods we have running
