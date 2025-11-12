@@ -22,10 +22,7 @@ spec:
             command: [
               "invenio",
               "shell",
-              "/opt/invenio/src/site/mex_invenio/scripts/s3_manager.py",
-              "--",
-              "--",
-              "--ingest"
+              "/opt/invenio/src/site/mex_invenio/scripts/s3_manager.py"
             ]
             envFrom:
             - configMapRef:
