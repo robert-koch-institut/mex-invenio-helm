@@ -306,6 +306,17 @@ importjob:
     storageClass: ""
     mountPath: /opt/invenio/var/s3_downloads
 
+# One-time initial import job
+initialImportJob:
+  enabled: false
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+
 workerBeat:
   ## @param workerBeat.extraEnvVars Extra environment variables (templated) to be added to the pods.
   ##

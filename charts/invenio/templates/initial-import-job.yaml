@@ -1,0 +1,60 @@
+{{- if .Values.initialImportJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "invenio.fullname" . }}-initial-import
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: 7200
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: initial-import
+        image: {{ required "Missing .Values.web.image" .Values.web.image }}
+        imagePullPolicy: Always
+        command: [
+          "invenio",
+          "shell",
+          "/opt/invenio/src/site/mex_invenio/scripts/s3_manager.py",
+          "--",
+          "--",
+          "--initial"
+        ]
+        envFrom:
+        - configMapRef:
+            name: {{ include "invenio.fullname" . }}-config
+        - secretRef:
+            name: {{ include "invenio.secretName" . }}
+        env:
+        - name: TZ
+          value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
+        - name: INVENIO_BROKER_URL
+          value: {{ include "invenio.rabbitmq.uri" . }}
+        - name: INVENIO_CELERY_BROKER_URL
+          value: {{ include "invenio.rabbitmq.uri" . }}
+        - name: INVENIO_SQLALCHEMY_DATABASE_URI
+          value: {{ include "invenio.sqlAlchemyDbUri" . }}
+        - name: INVENIO_S3_DOWNLOAD_FOLDER
+          value: {{ .Values.importjob.persistence.mountPath | quote }}
+        {{- include "invenio.config.sentry" . | nindent 8 }}
+        {{- if .Values.importjob.persistence.enabled }}
+        volumeMounts:
+        - name: import-data
+          mountPath: {{ .Values.importjob.persistence.mountPath }}
+        {{- end }}
+        {{- if .Values.initialImportJob.resources }}
+        resources: {{- toYaml .Values.initialImportJob.resources | nindent 10 }}
+        {{- end }}
+      {{- if .Values.importjob.persistence.enabled }}
+      volumes:
+      - name: import-data
+        persistentVolumeClaim:
+          claimName: {{ include "invenio.fullname" . }}-import-data
+      {{- end }}
+      {{- if .Values.web.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.web.imagePullSecret }}
+      {{- end }}
+{{- end }}
