@@ -299,6 +299,12 @@ importjob:
     runAsGroup: 1000
     seccompProfile:
       type: "RuntimeDefault"
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+    storageClass: ""
+    mountPath: /opt/invenio/var/s3_downloads
 
 workerBeat:
   ## @param workerBeat.extraEnvVars Extra environment variables (templated) to be added to the pods.

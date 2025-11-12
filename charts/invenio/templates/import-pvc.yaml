@@ -1,0 +1,23 @@
+{{- if .Values.importjob.enabled }}
+{{- if .Values.importjob.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "invenio.fullname" . }}-import-data
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.importjob.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.importjob.persistence.size | quote }}
+  {{- if .Values.importjob.persistence.storageClass }}
+  {{- if (eq "-" .Values.importjob.persistence.storageClass) }}
+  storageClassName: ""
+  {{- else }}
+  storageClassName: "{{ .Values.importjob.persistence.storageClass }}"
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

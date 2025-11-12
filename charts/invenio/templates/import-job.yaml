@@ -7,6 +7,7 @@ metadata:
     {{- include "invenio.labels" . | nindent 4 }}
 spec:
   schedule: "0 5 * * *"
+  # suspend: true
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
@@ -40,10 +41,23 @@ spec:
               value: {{ include "invenio.rabbitmq.uri" . }}
             - name: INVENIO_SQLALCHEMY_DATABASE_URI
               value: {{ include "invenio.sqlAlchemyDbUri" . }}
+            - name: INVENIO_S3_DOWNLOAD_FOLDER
+              value: {{ .Values.importjob.persistence.mountPath | quote }}
             {{- include "invenio.config.sentry" . | nindent 12 }}
+            {{- if .Values.importjob.persistence.enabled }}
+            volumeMounts:
+            - name: import-data
+              mountPath: {{ .Values.importjob.persistence.mountPath }}
+            {{- end }}
             {{- if .Values.importjob.resources }}
             resources: {{- toYaml .Values.importjob.resources | nindent 14 }}
             {{- end }}
+          {{- if .Values.importjob.persistence.enabled }}
+          volumes:
+          - name: import-data
+            persistentVolumeClaim:
+              claimName: {{ include "invenio.fullname" . }}-import-data
+          {{- end }}
           restartPolicy: OnFailure
           {{- if .Values.web.imagePullSecret }}
           imagePullSecrets:
