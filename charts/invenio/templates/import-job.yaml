@@ -7,14 +7,13 @@ metadata:
     {{- include "invenio.labels" . | nindent 4 }}
 spec:
   schedule: "0 5 * * *"
-  # suspend: true
+  suspend: {{ .Values.importjob.suspend | default false }}
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 7200
       template:
         spec:
-          suspend: true
           containers:
           - name: import-job
             image: {{ required "Missing .Values.web.image" .Values.web.image }}
