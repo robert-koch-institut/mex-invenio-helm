@@ -281,6 +281,9 @@ worker:
 importjob:
   enabled: false
   extraEnvVars: []
+  # Number of most-recent processed dumps to retain under s3_downloads/processed;
+  # older ones are pruned every run.
+  processedDumpsKeep: 20
   resources:
     requests:
       cpu: 500m
@@ -305,6 +308,34 @@ importjob:
     accessMode: ReadWriteOnce
     storageClass: ""
     mountPath: /opt/invenio/var/s3_downloads
+
+# Watchdog: checks that importjob's s3_manager.py is running healthily, and
+# writes a status JSON to the shared RWX volume (.Values.persistence) for
+# nginx to serve directly at /import_status.json. Requires importjob.enabled
+# and persistence.enabled to both be true.
+importStatusJob:
+  enabled: false
+  schedule: "0 6 * * *"
+  staleHours: 30
+  stuckHours: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    seccompProfile:
+      type: "RuntimeDefault"
 
 # One-time initial import job
 initialImportJob:

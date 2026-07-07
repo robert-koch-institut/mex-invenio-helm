@@ -1,0 +1,66 @@
+{{- if and .Values.importStatusJob.enabled .Values.importjob.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "invenio.fullname" . }}-import-status-job
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.importStatusJob.schedule | quote }}
+  suspend: {{ .Values.importStatusJob.suspend | default false }}
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - name: import-status-job
+            image: {{ required "Missing .Values.web.image" .Values.web.image }}
+            imagePullPolicy: Always
+            command: [
+              "python",
+              "/opt/invenio/src/site/mex_invenio/scripts/check_import_status.py"
+            ]
+            env:
+            - name: TZ
+              value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
+            - name: INVENIO_S3_DOWNLOAD_FOLDER
+              value: {{ .Values.importjob.persistence.mountPath | quote }}
+            - name: IMPORT_STATUS_OUTPUT_PATH
+              value: "/opt/invenio-import-status/import_status.json"
+            - name: IMPORT_STATUS_STALE_HOURS
+              value: {{ .Values.importStatusJob.staleHours | quote }}
+            - name: IMPORT_STATUS_STUCK_HOURS
+              value: {{ .Values.importStatusJob.stuckHours | quote }}
+            volumeMounts:
+            - name: import-data
+              mountPath: {{ .Values.importjob.persistence.mountPath }}
+              readOnly: true
+            # Second mount of the same (RWX) PVC, scoped to a dedicated
+            # subPath, read-write, for writing the status file nginx serves.
+            - name: import-data
+              mountPath: /opt/invenio-import-status
+              subPath: status
+            {{- if .Values.importStatusJob.resources }}
+            resources: {{- toYaml .Values.importStatusJob.resources | nindent 14 }}
+            {{- end }}
+            securityContext:
+              {{- with .Values.importStatusJob.securityContext }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+          restartPolicy: Never
+          securityContext:
+            {{- with .Values.importStatusJob.podSecurityContext }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumes:
+          - name: import-data
+            persistentVolumeClaim:
+              claimName: {{ include "invenio.fullname" . }}-import-data
+          {{- if .Values.web.imagePullSecret }}
+          imagePullSecrets:
+          - name: {{ .Values.web.imagePullSecret }}
+          {{- end }}
+{{- end }}

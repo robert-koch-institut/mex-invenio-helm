@@ -242,6 +242,18 @@ data:
           autoindex off;
         }
 
+        {{- if and .Values.importjob.enabled .Values.importjob.persistence.enabled }}
+        # Import watchdog status, written by a separate CronJob onto the
+        # import-data volume. Served directly so it stays available even if
+        # the app itself is unhealthy.
+        location = /import_status.json {
+          alias /opt/invenio-import-status/import_status.json;
+          default_type application/json;
+          add_header Cache-Control "no-cache";
+          autoindex off;
+        }
+        {{- end }}
+
 {{ .Values.nginx.extra_server_config | indent 8 }}
 
     }
