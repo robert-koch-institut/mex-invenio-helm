@@ -213,6 +213,25 @@ helm upgrade -f values-overrides-mexhost.yaml -n mex mex-invenio . \
   --set postgresqlExternal.username="$POSTGRESQL_USERNAME"
 ```
 
+#### Known issue: `importjob.persistence.storageClass` on upgrade
+
+The chart's default `importjob.persistence.storageClass` is `""`, so `templates/import-pvc.yaml` omits
+`storageClassName` from the rendered PVC. The already-bound `mex-invenio-import-data` PVC on staging (and
+possibly other environments) has `storageClassName: default` explicitly set from an earlier install, and
+Kubernetes forbids changing that field on a bound PVC. Without a workaround, `helm upgrade` fails with:
+
+```
+cannot patch "mex-invenio-import-data" with kind PersistentVolumeClaim: ... spec is immutable after creation
+```
+
+**Temporary workaround:** add `--set importjob.persistence.storageClass=default` to the upgrade command so the
+rendered value matches what's already bound, avoiding the diff. This is not a real fix — we do want
+`values-overrides-*.yaml` to declare the correct storage class explicitly rather than relying on an ad hoc
+`--set` flag, but setting it in the values file won't help on an *upgrade* of an existing bound PVC (same
+immutability problem would apply the first time the value file's setting differs from what's live). Recreating
+the PVC (e.g. during a full teardown/reinstall, see "Teardown" below) would allow the values file to take over
+cleanly.
+
 ## Checking on installation progress
 
 Remember to check pods in the expected namespace (below shows a rolling restart in-progress, see the image change)

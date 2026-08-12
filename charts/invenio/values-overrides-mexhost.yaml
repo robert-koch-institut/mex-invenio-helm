@@ -21,7 +21,7 @@ invenio:
     enabled: false
 
 web:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:4afae210b050b96f3c811e7060835373ba4a2811"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:d9a6efaf132496b7cdc42499921adef8a52d6f40"
   imagePullPolicy: Always
   loadBalancerIP: "<placeholder>"
   annotations:
@@ -50,7 +50,7 @@ web:
 
 # We want a high number of worker replicas to handle MEX import
 worker:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:4afae210b050b96f3c811e7060835373ba4a2811"
+  image: "ghcr.io/robert-koch-institut/mex-invenio:d9a6efaf132496b7cdc42499921adef8a52d6f40"
   imagePullPolicy: Always
   replicas: 4
 
