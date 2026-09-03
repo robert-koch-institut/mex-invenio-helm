@@ -39,6 +39,10 @@ spec:
               value: {{ include "invenio.sqlAlchemyDbUri" . }}
             - name: INVENIO_S3_DOWNLOAD_FOLDER
               value: {{ .Values.importjob.persistence.mountPath | quote }}
+            {{- if .Values.importjob.persistence.enabled }}
+            - name: INVENIO_IMPORT_STATUS_DIR
+              value: {{ .Values.importjob.persistence.mountPath }}/status
+            {{- end }}
             {{- include "invenio.config.sentry" . | nindent 12 }}
             {{- if .Values.importjob.persistence.enabled }}
             volumeMounts:

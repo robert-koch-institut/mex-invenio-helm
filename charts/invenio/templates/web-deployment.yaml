@@ -142,6 +142,12 @@ spec:
         - name: nginx-invenio-assets
           mountPath: "{{ .Values.nginx.assets.location }}"
           readOnly: true
+        {{- if and .Values.importjob.enabled .Values.importjob.persistence.enabled }}
+        - name: import-data
+          mountPath: /opt/import-status
+          subPath: status
+          readOnly: true
+        {{- end }}
         readinessProbe:
           httpGet:
             path: /ping
@@ -266,6 +272,11 @@ spec:
       - name: shared-volume
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.name }}
+      {{- end }}
+      {{- if and .Values.importjob.enabled .Values.importjob.persistence.enabled }}
+      - name: import-data
+        persistentVolumeClaim:
+          claimName: {{ include "invenio.fullname" . }}-import-data
       {{- end }}
       {{- if .Values.kerberos.enabled }}
       - name: kerberos-credentials-cache

@@ -242,6 +242,18 @@ data:
           autoindex off;
         }
 
+        {{- if and .Values.importjob.enabled .Values.importjob.persistence.enabled }}
+        # Nightly import job status (see import-job.yaml), written directly
+        # to the import-job's own (ReadWriteMany) volume - served here
+        # without touching the app, so it stays reachable even if the app
+        # itself is down.
+        location = /import-status.json {
+          alias /opt/import-status/import-status.json;
+          default_type application/json;
+          add_header Cache-Control "no-store";
+        }
+        {{- end }}
+
 {{ .Values.nginx.extra_server_config | indent 8 }}
 
     }
