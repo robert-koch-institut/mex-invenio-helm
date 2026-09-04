@@ -1,3 +1,6 @@
+### Template overrides for running MEx on the Gardener-managed Kubernetes cluster running on OpenStack
+
+# Temporarily required for the bitnamilegacy images
 global:
   security:
     allowInsecureImages: true
