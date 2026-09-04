@@ -1,3 +1,7 @@
+global:
+  security:
+    allowInsecureImages: true
+
 invenio:
   init: true  # initiates db, index, and admin roles
   hostname: "mex-stage.rki.de"
@@ -57,6 +61,10 @@ worker:
 importjob:
   enabled: true
   imagePullPolicy: Always
+  persistence:
+    accessMode: ReadWriteMany
+    storageClass: "nfs-client"
+    size: 25Gi
   resources:
     requests:
       cpu: 500m
@@ -112,6 +120,10 @@ opensearch:
 
 rabbitmq:
   enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/rabbitmq
+    tag: 4.1.3
   auth:
     password: ""  # Set via --set during deployment
   resources:
@@ -129,6 +141,13 @@ rabbitmq:
       # Default in RabbitMQ 4.x is 30 minutes (1800000 ms)
       # This prevents "PRECONDITION_FAILED - delivery acknowledgement timed out" errors
       consumer_timeout = 7200000
+
+redis:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: bitnamilegacy/redis
+    tag: 7.2.4-debian-12-r9
 
 haproxy:
   enabled: false
