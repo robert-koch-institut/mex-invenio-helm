@@ -11,7 +11,6 @@ invenio:
   default_users:
     mex@rki.de: "<placeholder>"
   existingSecret: "mex-invenio-secrets"
-  create_fixtures: false     # set false post-install.
   extraConfig:
     INVENIO_SETTINGS_MODULE: "mex_invenio.config"
     # MEX import secrets now pulled from mex-invenio-secrets:
