@@ -6,7 +6,7 @@ global:
     allowInsecureImages: true
 
 invenio:
-  init: true  # initiates db, index, and admin roles
+  init: false  # initiates db, index, and admin roles. set false post-install.
   hostname: "mex-stage.rki.de"
   default_users:
     mex@rki.de: "<placeholder>"
