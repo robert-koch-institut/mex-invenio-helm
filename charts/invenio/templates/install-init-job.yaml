@@ -19,6 +19,7 @@ metadata:
   {{- $cmd = cat $cmd "&& invenio rdm-records demo" -}}
 {{- end -}}
 {{- $cmd = cat $cmd "&& invenio rdm-records fixtures" -}}
+{{- $cmd = cat $cmd "&& invenio mex setup-db" -}}
 
 spec:
   ttlSecondsAfterFinished: 3600
