@@ -77,6 +77,8 @@ importjob:
       cpu: 1000m
       memory: 2Gi
   persistence:
+    accessMode: ReadWriteMany
+    storageClass: "nfs-client"
     size: 25Gi
 
 postgresql:
