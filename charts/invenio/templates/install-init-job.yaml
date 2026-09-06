@@ -18,9 +18,7 @@ metadata:
 {{- if and .Values.invenio.demo_data .Values.invenio.default_users -}}
   {{- $cmd = cat $cmd "&& invenio rdm-records demo" -}}
 {{- end -}}
-{{- if .Values.invenio.create_fixtures -}}
-  {{- $cmd = cat $cmd "&& invenio rdm-records fixtures" -}}
-{{- end -}}
+{{- $cmd = cat $cmd "&& invenio rdm-records fixtures" -}}
 
 spec:
   ttlSecondsAfterFinished: 3600
