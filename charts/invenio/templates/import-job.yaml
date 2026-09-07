@@ -42,6 +42,8 @@ spec:
             {{- if .Values.importjob.persistence.enabled }}
             - name: INVENIO_IMPORT_STATUS_DIR
               value: {{ .Values.importjob.persistence.mountPath }}/status
+            - name: INVENIO_DOWNLOADABLE_FILES_DIR
+              value: {{ .Values.importjob.persistence.mountPath }}/downloadable_files
             {{- end }}
             {{- include "invenio.config.sentry" . | nindent 12 }}
             {{- if .Values.importjob.persistence.enabled }}
