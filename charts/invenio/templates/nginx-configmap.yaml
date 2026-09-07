@@ -252,6 +252,20 @@ data:
           default_type application/json;
           add_header Cache-Control "no-store";
         }
+
+        # CSV exports mirrored nightly from the bucket's "downloadable
+        # files-<version>" prefix (see s3_manager.py's sync_downloadable_files),
+        # linked from the /downloads page and served here directly off the
+        # shared volume.
+        location /downloadable-files/ {
+          alias /opt/downloadable-files/;
+          types {
+            text/csv csv;
+            application/json json;
+          }
+          default_type application/octet-stream;
+          add_header Cache-Control "no-store";
+        }
         {{- end }}
 
 {{ .Values.nginx.extra_server_config | indent 8 }}
