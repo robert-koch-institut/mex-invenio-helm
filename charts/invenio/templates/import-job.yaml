@@ -31,12 +31,8 @@ spec:
             env:
             - name: TZ
               value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
-            - name: INVENIO_BROKER_URL
-              value: {{ include "invenio.rabbitmq.uri" . }}
-            - name: INVENIO_CELERY_BROKER_URL
-              value: {{ include "invenio.rabbitmq.uri" . }}
-            - name: INVENIO_SQLALCHEMY_DATABASE_URI
-              value: {{ include "invenio.sqlAlchemyDbUri" . }}
+            {{- include "invenio.config.queue" . | nindent 12 }}
+            {{- include "invenio.config.database" . | nindent 12 }}
             - name: INVENIO_S3_DOWNLOAD_FOLDER
               value: {{ .Values.importjob.persistence.mountPath | quote }}
             {{- if .Values.importjob.persistence.enabled }}

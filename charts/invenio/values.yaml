@@ -1456,7 +1456,7 @@ flower:
 ## @param postgresql.auth.existingSecret Name os the existing secret to get the password from.
 ##
 postgresql:
-  enabled: true
+  enabled: false
   auth:
     username: invenio
     password: ""
