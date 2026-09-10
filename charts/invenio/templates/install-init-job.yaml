@@ -32,7 +32,7 @@ spec:
         args: [ "until echo 'Waiting for opensearch...' && nc -vz -w 5 {{ include "invenio.opensearch.hostname" $ }} 9200; do sleep 10; done;" ]
       containers:
       - name: install-init
-        image: {{ default .Values.web.image (include "invenio.image" .) }}
+        image: {{ include "invenio.image" . }}
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         command: [
           "/bin/bash",

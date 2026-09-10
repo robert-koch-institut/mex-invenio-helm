@@ -12,7 +12,7 @@ spec:
       restartPolicy: OnFailure
       containers:
       - name: initial-import
-        image: {{ required "Missing .Values.web.image" .Values.web.image }}
+        image: {{ include "invenio.image" . }}
         imagePullPolicy: Always
         command: [
           "invenio",

@@ -16,7 +16,7 @@ spec:
         spec:
           containers:
           - name: import-job
-            image: {{ required "Missing .Values.web.image" .Values.web.image }}
+            image: {{ include "invenio.image" . }}
             imagePullPolicy: Always
             command: [
               "invenio",
