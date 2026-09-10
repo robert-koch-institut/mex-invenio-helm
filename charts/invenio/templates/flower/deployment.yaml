@@ -3,14 +3,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  {{- with .Values.flower.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: flower-management
   labels:
     {{- include "invenio.labels" . | nindent 4 }}
+    {{- with .Values.flower.deployment.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
+  {{- with .Values.flower.deployment.spec.minReadySeconds }}
+  minReadySeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.flower.deployment.spec.paused }}
+  paused: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.flower.deployment.spec.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
   replicas: 1
+  {{- with .Values.flower.deployment.spec.revisionHistoryLimit }}
+  revisionHistoryLimit: {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app: flower-management
+  {{- with .Values.flower.deployment.spec.strategy }}
+  strategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
       labels:
@@ -23,19 +45,21 @@ spec:
               [
                 "celery",
                 "--config=/var/celery/celeryconfig.py",
-                {{ printf "--broker=%s" (include "invenio.rabbitmq.uri" .) }},
+                "--broker=$(INVENIO_CELERY_BROKER_URL)",
                 "flower",
-                {{ printf "--broker_api=%s" (include "invenio.rabbitmq.apiUri" .) }},
+                "--broker_api=$(RABBITMQ_API_URI)",
                 "--basic_auth=$(FLOWER_BASIC_AUTH_CREDENTIALS)",
                 "--conf=/var/flower/flowerconfig.py"
               ]
           ports:
             - containerPort: 5555
+          livenessProbe: {{- tpl (.Values.flower.livenessProbe | toYaml) $ | nindent 12 }}
+          readinessProbe: {{- tpl (.Values.flower.readinessProbe | toYaml) $ | nindent 12 }}
+          startupProbe: {{- tpl (.Values.flower.startupProbe | toYaml) $ | nindent 12 }}
+          {{- with .Values.flower.securityContext }}
           securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           env:
             - name: TZ
               value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
@@ -44,21 +68,28 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.flower.secret_name }}
                   key: FLOWER_BASIC_AUTH_CREDENTIALS
-          {{- if .Values.flower.resources }}
-          resources: {{- toYaml .Values.flower.resources | nindent 12 }}
+            {{- include "invenio.config.queue" . | nindent 12 }}
+          {{- with .Values.flower.extraEnvFrom }}
+          envFrom:
+            {{- tpl (. | toYaml) $ | nindent 12 }}
           {{- end }}
+          resources: {{- toYaml .Values.flower.resources | nindent 12 }}
           volumeMounts:
             - name: celery-config-volume
               mountPath: /var/celery
             - name: flower-config-volume
               mountPath: /var/flower
-      {{- if .Values.invenio.podSecurityContext.enabled }}
+      {{- with .Values.flower.podSecurityContext }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        seccompProfile:
-          type: "RuntimeDefault"
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.flower.nodeSelector }}
+      nodeSelector:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
+      {{- with .Values.flower.tolerations }}
+      tolerations:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
       {{- end }}
       volumes:
         - name: celery-config-volume

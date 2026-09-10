@@ -1,76 +1,63 @@
+{{- if .Values.terminal.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  {{- with .Values.worker.deployment.annotations }}
+  {{- with .Values.terminal.deployment.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: {{ include "invenio.fullname" . }}-worker
+  name: {{ include "invenio.fullname" . }}-terminal
   labels:
     {{- include "invenio.labels" . | nindent 4 }}
-    app.kubernetes.io/component: worker
-    {{- with .Values.worker.deployment.labels }}
+    app.kubernetes.io/component: terminal
+    {{- with .Values.terminal.deployment.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- with .Values.worker.deployment.spec.minReadySeconds }}
+  {{- with .Values.terminal.deployment.spec.minReadySeconds }}
   minReadySeconds: {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.worker.deployment.spec.paused }}
+  {{- with .Values.terminal.deployment.spec.paused }}
   paused: {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with .Values.worker.deployment.spec.progressDeadlineSeconds }}
+  {{- with .Values.terminal.deployment.spec.progressDeadlineSeconds }}
   progressDeadlineSeconds: {{- toYaml . | nindent 4 }}
   {{- end }}
-  replicas: {{ .Values.worker.replicas }}
-  {{- with .Values.worker.deployment.spec.revisionHistoryLimit }}
+  replicas: {{ .Values.terminal.replicas }}
+  {{- with .Values.terminal.deployment.spec.revisionHistoryLimit }}
   revisionHistoryLimit: {{- toYaml . | nindent 4 }}
   {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/component: worker
-  {{- with .Values.worker.deployment.spec.strategy }}
+      app.kubernetes.io/component: terminal
+  {{- with .Values.terminal.deployment.spec.strategy }}
   strategy: {{- toYaml . | nindent 4 }}
   {{- end }}
   template:
     metadata:
-      annotations:
-        {{- with .Values.worker.podAnnotations }}
-          {{- tpl (toYaml .) $ | nindent 8 }}
-        {{- end }}
-        app.kubernetes.io/component: worker
-        checksum/invenio-config: {{ include (print $.Template.BasePath "/invenio-configmap.yaml") . | sha256sum }}
       labels:
-        {{- with .Values.worker.podLabels }}
-          {{- tpl (toYaml .) $ | nindent 8 }}
-        {{- end }}
-        app.kubernetes.io/component: worker
+        app.kubernetes.io/component: terminal
     spec:
-      {{- with .Values.worker.affinity }}
-      affinity:
-        {{- tpl (toYaml .) $ | nindent 8 -}}
-      {{- end }}
-      {{- with .Values.worker.nodeSelector }}
+      {{- with .Values.terminal.nodeSelector }}
       nodeSelector:
         {{- tpl (toYaml .) $ | nindent 8 -}}
       {{- end }}
-      {{- with .Values.worker.tolerations }}
+      {{- with .Values.terminal.tolerations }}
       tolerations:
         {{- tpl (toYaml .) $ | nindent 8 -}}
       {{- end }}
       containers:
-        - name: worker
-          image: {{ default .Values.worker.image (include "invenio.image" .) }}
+        - name: terminal
+          image: {{ include "invenio.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
-          command: [
-              "/bin/bash",
-              "-c",
-              "celery -A {{ .Values.worker.app }} worker -c {{ .Values.worker.concurrency }} -l {{ .Values.worker.log_level }}"
-          ]
-          resources: {{- toYaml .Values.worker.resources | nindent 12 }}
+          command: ['sleep']
+          args: ['infinity']
+          stdin: true
+          tty: true
+          resources: {{- toYaml .Values.terminal.resources | nindent 12 }}
           securityContext:
-            {{- with .Values.worker.securityContext }}
+            {{- with .Values.terminal.securityContext }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
           envFrom:
@@ -81,7 +68,7 @@ spec:
             {{- with .Values.invenio.extraEnvFrom }}
             {{- tpl (. | toYaml) $ | nindent 12 }}
             {{- end }}
-            {{- with .Values.worker.extraEnvFrom }}
+            {{- with .Values.terminal.extraEnvFrom }}
             {{- tpl (. | toYaml) $ | nindent 12 }}
             {{- end }}
           env:
@@ -89,11 +76,10 @@ spec:
             value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
           {{- include "invenio.config.queue" . | nindent 10 }}
           {{- include "invenio.config.database" . | nindent 10 }}
-          {{- include "invenio.opensearch.env" . | nindent 10 }}
           {{- with .Values.invenio.extraEnvVars }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
-          {{- with .Values.worker.extraEnvVars }}
+          {{- with .Values.terminal.extraEnvVars }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
           {{- include "invenio.config.sentry" . | nindent 10 }}
@@ -114,9 +100,9 @@ spec:
                 name: {{ .valueFrom.secretKeyRef.name }}
                 key: {{ .valueFrom.secretKeyRef.key }}
           {{- end }}
-          livenessProbe: {{- tpl (.Values.worker.livenessProbe | toYaml) $ | nindent 12 }}
-          readinessProbe: {{- tpl (.Values.worker.readinessProbe | toYaml) $ | nindent 12 }}
-          startupProbe: {{- tpl (.Values.worker.startupProbe | toYaml) $ | nindent 12 }}
+          livenessProbe: {{- tpl (.Values.terminal.livenessProbe | toYaml) $ | nindent 12 }}
+          readinessProbe: {{- tpl (.Values.terminal.readinessProbe | toYaml) $ | nindent 12 }}
+          startupProbe: {{- tpl (.Values.terminal.startupProbe | toYaml) $ | nindent 12 }}
           volumeMounts:
             {{- if .Values.persistence.enabled }}
             - mountPath: /opt/invenio/var/instance/data
@@ -136,12 +122,11 @@ spec:
               subPath: "{{ $key }}"
               {{- end }}
             {{- end }}
-            {{- include "invenio.opensearch.volumeMounts" . | nindent 12 }}
             {{- with .Values.invenio.extraVolumeMounts }}
             {{- tpl (toYaml .) $ | nindent 12 }}
             {{- end }}
-            {{- with .Values.worker.extraVolumeMounts }}
-            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- with .Values.terminal.extraVolumeMounts }}
+            {{ tpl (toYaml .) $ | nindent 12 }}
             {{- end }}
         {{- if .Values.kerberos.enabled }}
         - name: kerberos-credentials
@@ -161,7 +146,6 @@ spec:
             - name: kerberos-credentials-cache
               mountPath: /tmp
         {{- end }}
-
       {{- if .Values.kerberos.enabled }}
       initContainers:
         # Init kerberos credentials
@@ -177,7 +161,7 @@ spec:
               mountPath: /tmp
       {{- end }}
       securityContext:
-        {{- with .Values.worker.podSecurityContext }}
+        {{- with .Values.terminal.podSecurityContext }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       volumes:
@@ -195,18 +179,14 @@ spec:
           configMap:
             name: "{{ include "invenio.fullname" . }}-vocabularies"
         {{- end }}
-        {{- include "invenio.opensearch.volumes" . | nindent 8 }}
         {{- with .Values.invenio.extraVolumes }}
         {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
-        {{- with .Values.worker.extraVolumes }}
+        {{- with .Values.terminal.extraVolumes }}
         {{- tpl (toYaml .) $ | nindent 8 }}
         {{- end }}
-      {{- if .Values.worker.imagePullSecret }}
-      imagePullSecrets:
-      - name: {{ .Values.worker.imagePullSecret }}
-      {{- end }}
       {{- with .Values.image.pullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+{{- end }}
