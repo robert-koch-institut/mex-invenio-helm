@@ -1524,19 +1524,6 @@ logstash:
     capabilities:
       drop:
         - ALL
-  dashboards:
-    image:
-      ## @param opensearch.dashboards.image.repository Sets bitnamilegacy by default
-      ##
-      repository: bitnamilegacy/opensearch-dashboards
-  image:
-    ## @param opensearch.image.repository Sets bitnamilegacy by default
-    ##
-    repository: bitnamilegacy/opensearch  # Work-around until we've migrated away from Bitnami.
-  sysctlImage:
-    ## @param opensearch.sysctlImage.repository Sets bitnamilegacy by default
-    ##
-    repository: bitnamilegacy/os-shell  # Work-around until we've migrated away from Bitnami.
 
 ## @param opensearchExternal External Opensearch configuration
 ## All of these values are only used when opensearch.enabled is set to false
