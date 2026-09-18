@@ -18,6 +18,7 @@ metadata:
 {{- if and .Values.invenio.demo_data .Values.invenio.default_users -}}
   {{- $cmd = cat $cmd "&& invenio rdm-records demo" -}}
 {{- end -}}
+{{- $cmd = cat $cmd "&& invenio rdm-records custom-fields init" -}}
 {{- $cmd = cat $cmd "&& invenio rdm-records fixtures" -}}
 {{- $cmd = cat $cmd "&& invenio mex setup-db" -}}
 
