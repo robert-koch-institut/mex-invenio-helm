@@ -122,6 +122,7 @@ opensearch:
     opensearch.yml: |
       cluster.name: mex-invenio-opensearch
       network.host: 0.0.0.0
+      script.allowed_types: none
       plugins:
         security:
           disabled: true
