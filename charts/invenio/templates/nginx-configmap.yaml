@@ -6,7 +6,6 @@ metadata:
   labels:
     {{- include "invenio.labels" . | nindent 4 }}
 data:
-  #use_proxy_protocol: "false"
   invenio.conf: |
     upstream web {
         server 127.0.0.1:5000 max_conns={{ .Values.nginx.max_conns }} fail_timeout=0;
@@ -192,8 +191,8 @@ data:
         ## API files
         # Another location is defined in order to allow large file uploads in the files
         # API without exposing the other parts of the application to receive huge
-        # request bodies.
-        location ~ /api/records/.+/draft/files/.+/content {
+        # request bodies. This includes part content uploads of multipart file uploads.
+        location ~ /api/records/.+/draft/files/.+/content(/[0-9]+)?/?$ {
           gzip off;
           uwsgi_pass web;
           include uwsgi_params;
@@ -255,5 +254,6 @@ data:
         {{- end }}
 
 {{ .Values.nginx.extra_server_config | indent 8 }}
+{{ tpl .Values.nginx.extraServerConfig $ | indent 8 }}
 
     }

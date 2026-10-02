@@ -90,7 +90,7 @@ postgresqlExternal:
   port: 5432
   username: "<placeholder>"
   password: "<placeholder>"
-  databaseName: "<placeholder>"
+  database: "<placeholder>"
 
 opensearch:
   enabled: true
