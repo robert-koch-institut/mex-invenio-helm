@@ -272,10 +272,32 @@ The `install-init` container is temporary, i.e. it runs its job and then shuts d
 To watch the logs from e.g. all web containers (running the Invenio app):
 
 ```bash
-kubectl logs -f -l app=web -n mex --max-log-requests=6
+kubectl logs -f -l app.kubernetes.io/component=web -n mex --all-containers --max-log-requests=6
 ```
 
-Check the labels on the pod type you need with `kubectl -n mex describe pod ...` - the label you need may be `app.kubernetes.io/component=web` rather than `app=web`.
+Check the labels on the pod type you need with `kubectl -n mex describe pod ...` if this doesn't match - the label may differ, e.g. `app=web` on some resources. Web pods run two containers (app + sidecar), so `--all-containers` (or `-c <name>` to pick one) is needed to see everything.
+
+## Inspect OpenSearch indices and mappings
+
+You can query OpenSearch directly from any of the master pods without an interactive shell, which is useful for checking index mappings when debugging indexing or query issues.
+
+### List indices matching a pattern
+
+```bash
+kubectl exec mex-invenio-opensearch-master-0 -n mex -- curl -s "localhost:9200/_cat/indices/*records-record*?v"
+```
+
+This helps find the exact index name, which includes a version/hash suffix (e.g. `mex-invenio-mexrecords-records-record-v8.0.0-1789650856`).
+
+### Extract a mapping to a local file
+
+```bash
+kubectl exec mex-invenio-opensearch-master-0 -n mex -- curl -s "localhost:9200/<index-name>/_mapping?pretty" > mapping.json
+```
+
+Wildcards also work directly in the `_mapping` URL (e.g. `*records-record*/_mapping`) if there's only one match, letting you skip the listing step.
+
+Any of the `mex-invenio-opensearch-master-0/1/2` pods works - they share the same cluster state. `kubectl exec` prints a `Defaulted container "opensearch" out of: ...` notice to stderr; this is harmless and won't end up in the redirected file.
 
 ## Teardown
 
