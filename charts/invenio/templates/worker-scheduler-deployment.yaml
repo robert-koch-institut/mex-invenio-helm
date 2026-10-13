@@ -62,7 +62,7 @@ spec:
       {{- end }}
       containers:
       - name: worker-scheduler
-        image: {{ default .Values.worker.image (include "invenio.image" .) }}
+        image: {{ default (include "invenio.image" .) .Values.worker.image }}
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         command: [
           "/bin/bash",

@@ -5,6 +5,12 @@ global:
   security:
     allowInsecureImages: true
 
+image:
+  registry: ghcr.io/robert-koch-institut
+  repository: mex-invenio
+  tag: "62c27f1075b6551a2a8d0aaf0f7e8b254cb3ac3a"
+  pullPolicy: Always
+
 invenio:
   init: false  # initiates db, index, and admin roles. set false post-install.
   hostname: "mex-stage.rki.de"
@@ -26,8 +32,6 @@ invenio:
     enabled: false
 
 web:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:62c27f1075b6551a2a8d0aaf0f7e8b254cb3ac3a"
-  imagePullPolicy: Always
   loadBalancerIP: "<placeholder>"
   annotations:
     loadbalancer.openstack.org/keep-floatingip: "true"
@@ -55,8 +59,6 @@ web:
 
 # We want a high number of worker replicas to handle MEX import
 worker:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:62c27f1075b6551a2a8d0aaf0f7e8b254cb3ac3a"
-  imagePullPolicy: Always
   replicas: 2
   resources:
     requests:

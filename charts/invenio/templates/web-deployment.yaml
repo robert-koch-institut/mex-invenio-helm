@@ -64,7 +64,7 @@ spec:
       {{- end }}
       containers:
       - name: web
-        image: {{ default .Values.web.image (include "invenio.image" .) }}
+        image: {{ default (include "invenio.image" .) .Values.web.image }}
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         command: [
             "/bin/bash",
@@ -217,7 +217,7 @@ spec:
       initContainers:
         # copy assets from uwsgi to nginx
         - name: copy-web-assets
-          image: {{ default .Values.web.image (include "invenio.image" .) }}
+          image: {{ default (include "invenio.image" .) .Values.web.image }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command: [
               "/bin/bash",
