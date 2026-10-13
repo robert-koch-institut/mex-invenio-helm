@@ -68,6 +68,35 @@ worker:
       cpu: 1000m
       memory: 2Gi
 
+# The chart no longer sets default resources for these. workerBeat and nginx keep
+# the previous chart defaults; workerScheduler is new and lightweight.
+workerBeat:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 200Mi
+    limits:
+      cpu: "2"
+      memory: 500Mi
+
+workerScheduler:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+
+nginx:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 500Mi
+    limits:
+      cpu: 250m
+      memory: 500Mi
+
 importjob:
   enabled: true
   imagePullPolicy: Always
