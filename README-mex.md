@@ -138,7 +138,7 @@ POSTGRESQL_USERNAME=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath=
 helm install -f values-overrides-mexhost.yaml -n mex mex-invenio . \
   --set postgresqlExternal.hostname="$POSTGRESQL_HOSTNAME" \
   --set rabbitmq.auth.password="$RABBITMQ_PASSWORD" \
-  --set postgresqlExternal.databaseName="$POSTGRESQL_DATABASE" \
+  --set postgresqlExternal.database="$POSTGRESQL_DATABASE" \
   --set postgresqlExternal.password="$POSTGRESQL_PASSWORD" \
   --set postgresqlExternal.username="$POSTGRESQL_USERNAME"
 ```
@@ -208,7 +208,7 @@ POSTGRESQL_USERNAME=$(kubectl get secret mex-invenio-secrets -n mex -o jsonpath=
 helm upgrade -f values-overrides-mexhost.yaml -n mex mex-invenio . \
   --set postgresqlExternal.hostname="$POSTGRESQL_HOSTNAME" \
   --set rabbitmq.auth.password="$RABBITMQ_PASSWORD" \
-  --set postgresqlExternal.databaseName="$POSTGRESQL_DATABASE" \
+  --set postgresqlExternal.database="$POSTGRESQL_DATABASE" \
   --set postgresqlExternal.password="$POSTGRESQL_PASSWORD" \
   --set postgresqlExternal.username="$POSTGRESQL_USERNAME"
 ```
