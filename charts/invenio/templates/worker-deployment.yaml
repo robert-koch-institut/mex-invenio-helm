@@ -2,31 +2,73 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  {{- with .Values.worker.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   name: {{ include "invenio.fullname" . }}-worker
   labels:
     {{- include "invenio.labels" . | nindent 4 }}
     app.kubernetes.io/component: worker
+    {{- with .Values.worker.deployment.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
+  {{- with .Values.worker.deployment.spec.minReadySeconds }}
+  minReadySeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.worker.deployment.spec.paused }}
+  paused: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.worker.deployment.spec.progressDeadlineSeconds }}
+  progressDeadlineSeconds: {{- toYaml . | nindent 4 }}
+  {{- end }}
   replicas: {{ .Values.worker.replicas }}
+  {{- with .Values.worker.deployment.spec.revisionHistoryLimit }}
+  revisionHistoryLimit: {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app.kubernetes.io/component: worker
+  {{- with .Values.worker.deployment.spec.strategy }}
+  strategy: {{- toYaml . | nindent 4 }}
+  {{- end }}
   template:
     metadata:
+      annotations:
+        {{- with .Values.worker.podAnnotations }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+        app.kubernetes.io/component: worker
+        checksum/invenio-config: {{ include (print $.Template.BasePath "/invenio-configmap.yaml") . | sha256sum }}
       labels:
+        {{- with .Values.worker.podLabels }}
+          {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
         app.kubernetes.io/component: worker
     spec:
+      {{- with .Values.worker.affinity }}
+      affinity:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
+      {{- with .Values.worker.nodeSelector }}
+      nodeSelector:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
+      {{- with .Values.worker.tolerations }}
+      tolerations:
+        {{- tpl (toYaml .) $ | nindent 8 -}}
+      {{- end }}
       containers:
         - name: worker
-          image: {{ required "Missing .Values.worker.image" .Values.worker.image }}
+          image: {{ default (include "invenio.image" .) .Values.worker.image }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           command: [
               "/bin/bash",
               "-c",
               "celery -A {{ .Values.worker.app }} worker -c {{ .Values.worker.concurrency }} -l {{ .Values.worker.log_level }}"
           ]
-          {{- if .Values.worker.resources }}
           resources: {{- toYaml .Values.worker.resources | nindent 12 }}
-          {{- end }}
           securityContext:
             {{- with .Values.worker.securityContext }}
             {{- toYaml . | nindent 12 }}
@@ -36,31 +78,26 @@ spec:
                 name: {{ include "invenio.fullname" . }}-config
             - secretRef:
                 name: {{ include "invenio.secretName" . }}
+            {{- with .Values.invenio.extraEnvFrom }}
+            {{- tpl (. | toYaml) $ | nindent 12 }}
+            {{- end }}
+            {{- with .Values.worker.extraEnvFrom }}
+            {{- tpl (. | toYaml) $ | nindent 12 }}
+            {{- end }}
           env:
           - name: TZ
             value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
-          - name: INVENIO_BROKER_URL
-            value: {{ include "invenio.rabbitmq.uri" . }}
-          - name: INVENIO_CELERY_BROKER_URL
-            value: {{ include "invenio.rabbitmq.uri" . }}
-          - name: INVENIO_SQLALCHEMY_DATABASE_URI
-            value: {{ include "invenio.sqlAlchemyDbUri" . }}
+          {{- include "invenio.config.queue" . | nindent 10 }}
+          {{- include "invenio.config.database" . | nindent 10 }}
+          {{- include "invenio.opensearch.env" . | nindent 10 }}
+          {{- with .Values.invenio.extraEnvVars }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           {{- with .Values.worker.extraEnvVars }}
           {{- toYaml . | nindent 10 }}
           {{- end }}
           {{- include "invenio.config.sentry" . | nindent 10 }}
-          {{- if .Values.invenio.datacite.enabled }}
-          - name: INVENIO_DATACITE_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.invenio.datacite.secret_name }}
-                key: DATACITE_USERNAME
-          - name: INVENIO_DATACITE_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.invenio.datacite.secret_name }}
-                key: DATACITE_PASSWORD
-          {{- end }}
+          {{- include "invenio.config.datacite" . | nindent 10 }}
           {{- if .Values.invenio.remote_apps.enabled }}
           {{- range .Values.invenio.remote_apps.credentials }}
           - name: {{ default (printf "INVENIO_%s_APP_CREDENTIALS" .name) }}
@@ -77,19 +114,16 @@ spec:
                 name: {{ .valueFrom.secretKeyRef.name }}
                 key: {{ .valueFrom.secretKeyRef.key }}
           {{- end }}
-          livenessProbe:
-            exec:
-              command:
-                - /bin/bash
-                - -c
-                - "celery -A {{ .Values.worker.app }} inspect ping -d celery@$(hostname)"
-            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds }}
-            timeoutSeconds: 30
+          livenessProbe: {{- tpl (.Values.worker.livenessProbe | toYaml) $ | nindent 12 }}
+          readinessProbe: {{- tpl (.Values.worker.readinessProbe | toYaml) $ | nindent 12 }}
+          startupProbe: {{- tpl (.Values.worker.startupProbe | toYaml) $ | nindent 12 }}
           volumeMounts:
             {{- if .Values.persistence.enabled }}
             - mountPath: /opt/invenio/var/instance/data
               name: shared-volume
+              {{- if .Values.persistence.useSubPath }}
               subPath: data
+              {{- end }}
             {{- end }}
             {{- if .Values.kerberos.enabled }}
             - name: kerberos-credentials-cache
@@ -98,7 +132,16 @@ spec:
             {{- range $key, $value := .Values.invenio.vocabularies }}
             - name: vocabularies
               mountPath: "/opt/invenio/var/instance/app_data/vocabularies/{{ $key }}"
+              {{- if $.Values.persistence.useSubPath }}
               subPath: "{{ $key }}"
+              {{- end }}
+            {{- end }}
+            {{- include "invenio.opensearch.volumeMounts" . | nindent 12 }}
+            {{- with .Values.invenio.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+            {{- with .Values.worker.extraVolumeMounts }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
             {{- end }}
         {{- if .Values.kerberos.enabled }}
         - name: kerberos-credentials
@@ -128,7 +171,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.kerberos.secret_name }}
-          resources: {{- toYaml .Values.kerberos.resources | nindent 12 }}
+          resources: {{- toYaml .Values.kerberos.initContainers.resources | nindent 12 }}
           volumeMounts:
             - name: kerberos-credentials-cache
               mountPath: /tmp
@@ -152,7 +195,18 @@ spec:
           configMap:
             name: "{{ include "invenio.fullname" . }}-vocabularies"
         {{- end }}
+        {{- include "invenio.opensearch.volumes" . | nindent 8 }}
+        {{- with .Values.invenio.extraVolumes }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+        {{- with .Values.worker.extraVolumes }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
       {{- if .Values.worker.imagePullSecret }}
       imagePullSecrets:
       - name: {{ .Values.worker.imagePullSecret }}
+      {{- end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
       {{- end }}

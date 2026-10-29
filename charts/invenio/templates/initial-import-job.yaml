@@ -7,12 +7,15 @@ metadata:
     {{- include "invenio.labels" . | nindent 4 }}
 spec:
   ttlSecondsAfterFinished: 7200
+  # initial_import does no identifier lookups, so a retried run re-creates every
+  # record already imported. Never retry automatically; a failed run needs a human.
+  backoffLimit: 0
   template:
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
       containers:
       - name: initial-import
-        image: {{ required "Missing .Values.web.image" .Values.web.image }}
+        image: {{ include "invenio.image" . }}
         imagePullPolicy: Always
         command: [
           "invenio",
@@ -30,12 +33,9 @@ spec:
         env:
         - name: TZ
           value: {{ required "Missing .Values.global.timezone" .Values.global.timezone }}
-        - name: INVENIO_BROKER_URL
-          value: {{ include "invenio.rabbitmq.uri" . }}
-        - name: INVENIO_CELERY_BROKER_URL
-          value: {{ include "invenio.rabbitmq.uri" . }}
-        - name: INVENIO_SQLALCHEMY_DATABASE_URI
-          value: {{ include "invenio.sqlAlchemyDbUri" . }}
+        {{- include "invenio.config.queue" . | nindent 8 }}
+        {{- include "invenio.config.database" . | nindent 8 }}
+        {{- include "invenio.opensearch.env" . | nindent 8 }}
         - name: INVENIO_S3_DOWNLOAD_FOLDER
           value: {{ .Values.importjob.persistence.mountPath | quote }}
         {{- include "invenio.config.sentry" . | nindent 8 }}

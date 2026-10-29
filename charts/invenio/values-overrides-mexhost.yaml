@@ -5,8 +5,14 @@ global:
   security:
     allowInsecureImages: true
 
+image:
+  registry: ghcr.io/robert-koch-institut
+  repository: mex-invenio
+  tag: "4280a5708003dedc8027888017e2d93363ee5b7e"
+  pullPolicy: Always
+
 invenio:
-  init: true  # initiates db, index, and admin roles
+  init: false  # initiates db, index, and admin roles. set false post-install.
   hostname: "mex-stage.rki.de"
   default_users:
     mex@rki.de: "<placeholder>"
@@ -26,8 +32,6 @@ invenio:
     enabled: false
 
 web:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:4ce74810d3d1b5b3713c25d52dea6e828c48541d"
-  imagePullPolicy: Always
   loadBalancerIP: "<placeholder>"
   annotations:
     loadbalancer.openstack.org/keep-floatingip: "true"
@@ -55,8 +59,6 @@ web:
 
 # We want a high number of worker replicas to handle MEX import
 worker:
-  image: "ghcr.io/robert-koch-institut/mex-invenio:4ce74810d3d1b5b3713c25d52dea6e828c48541d"
-  imagePullPolicy: Always
   replicas: 2
   resources:
     requests:
@@ -65,6 +67,35 @@ worker:
     limits:
       cpu: 1000m
       memory: 2Gi
+
+# The chart no longer sets default resources for these. workerBeat and nginx keep
+# the previous chart defaults; workerScheduler is new and lightweight.
+workerBeat:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 200Mi
+    limits:
+      cpu: "2"
+      memory: 500Mi
+
+workerScheduler:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 200Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+
+nginx:
+  resources:
+    requests:
+      cpu: 250m
+      memory: 500Mi
+    limits:
+      cpu: 250m
+      memory: 500Mi
 
 importjob:
   enabled: true
@@ -77,6 +108,8 @@ importjob:
       cpu: 1000m
       memory: 2Gi
   persistence:
+    accessMode: ReadWriteMany
+    storageClass: "nfs-client"
     size: 25Gi
 
 postgresql:
@@ -88,7 +121,7 @@ postgresqlExternal:
   port: 5432
   username: "<placeholder>"
   password: "<placeholder>"
-  databaseName: "<placeholder>"
+  database: "<placeholder>"
 
 opensearch:
   enabled: true
@@ -120,6 +153,8 @@ opensearch:
     opensearch.yml: |
       cluster.name: mex-invenio-opensearch
       network.host: 0.0.0.0
+      # Neither Invenio nor MEx uses scripts; don't let anything that can send a query run them
+      script.allowed_types: none
       plugins:
         security:
           disabled: true

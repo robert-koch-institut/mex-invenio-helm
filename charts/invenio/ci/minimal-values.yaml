@@ -1,0 +1,20 @@
+# The chart defaults to bitnamilegacy images, which the Bitnami subcharts
+# refuse to render unless image verification is skipped.
+global:
+  security:
+    allowInsecureImages: true
+
+invenio:
+  hostname: "ci-test.example.com"
+
+rabbitmq:
+  auth:
+    password: "ci-test-password"
+
+# The PostgreSQL subchart is not bundled; point at an external database.
+postgresqlExternal:
+  hostname: "postgres.example.com"
+  port: 5432
+  username: "invenio"
+  password: "ci-test-password"
+  database: "invenio"
