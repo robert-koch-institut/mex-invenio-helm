@@ -94,7 +94,7 @@ spec:
         {{- end }}
         {{- if and .Values.importjob.enabled .Values.importjob.persistence.enabled }}
         - name: INVENIO_DOWNLOADABLE_FILES_DIR
-          value: /opt/invenio/var/downloadable-files
+          value: /opt/import-data/downloadable_files
         {{- end }}
         {{- with .Values.web.extraEnvVars }}
         {{-  toYaml . | nindent 8 }}
@@ -138,9 +138,11 @@ spec:
             {{- end }}
           {{- end }}
           {{- if and .Values.importjob.enabled .Values.importjob.persistence.enabled }}
+          # The whole volume, not a subPath: the import job replaces
+          # downloadable_files by renaming a new directory into place, and a
+          # subPath mount would stay bound to the deleted one.
           - name: import-data
-            mountPath: /opt/invenio/var/downloadable-files
-            subPath: downloadable_files
+            mountPath: /opt/import-data
             readOnly: true
           {{- end }}
           {{- if .Values.kerberos.enabled }}
@@ -190,9 +192,9 @@ spec:
           mountPath: /opt/import-status
           subPath: status
           readOnly: true
+        # Whole volume for the same reason as in the web container.
         - name: import-data
-          mountPath: /opt/downloadable-files
-          subPath: downloadable_files
+          mountPath: /opt/import-data
           readOnly: true
         {{- end }}
         readinessProbe:

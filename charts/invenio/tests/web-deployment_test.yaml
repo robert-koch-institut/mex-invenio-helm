@@ -10,6 +10,11 @@ set:
   invenio.hostname: "test.example.com"
   rabbitmq.auth.password: "test"
   postgresql.auth.password: "test"
+  postgresqlExternal:
+    hostname: db.example.org
+    username: invenio
+    database: invenio
+    password: "test"
 tests:
   - it: renders a Deployment with correct component label
     asserts:
@@ -140,3 +145,33 @@ tests:
           path: metadata.labels["custom-label"]
           value: "test"
         template: templates/web-deployment.yaml
+
+  - it: mounts the whole import volume for downloadable files, not a subPath
+    set:
+      importjob.enabled: true
+      importjob.persistence.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "web")].volumeMounts
+          content:
+            name: import-data
+            mountPath: /opt/import-data
+            readOnly: true
+        template: templates/web-deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "nginx")].volumeMounts
+          content:
+            name: import-data
+            mountPath: /opt/import-data
+            readOnly: true
+        template: templates/web-deployment.yaml
+      - contains:
+          path: spec.template.spec.containers[?(@.name == "web")].env
+          content:
+            name: INVENIO_DOWNLOADABLE_FILES_DIR
+            value: /opt/import-data/downloadable_files
+        template: templates/web-deployment.yaml
+      - matchRegex:
+          path: data["invenio.conf"]
+          pattern: alias /opt/import-data/downloadable_files/;
+        template: templates/nginx-configmap.yaml

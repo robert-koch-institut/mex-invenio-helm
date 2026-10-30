@@ -67,6 +67,16 @@ ingress:
   ## @param ingress.tlsSecretNameOverride Custom TLS secret name.
   ##
   tlsSecretNameOverride: ""
+  ## @param ingress.publicPaths Exact paths served through a second Ingress that does not get
+  ## ingress.annotations, e.g. to keep a status file reachable for monitors despite an IP allowlist.
+  ## e.g:
+  ## publicPaths:
+  ##   - /import-status.json
+  ##
+  publicPaths: []
+  ## @param ingress.publicAnnotations Annotations for the second Ingress (ingress.publicPaths).
+  ##
+  publicAnnotations: {}
 
 ## Openshift Route object
 ## @param route.annotations Annotations to be added to the Route
@@ -760,6 +770,67 @@ initialImportJob:
     limits:
       cpu: "2"
       memory: 2Gi
+
+# Pseudonymised developer snapshots of the database (see docker/dev-snapshot in
+# mex-invenio). Only enable this on staging: the job copies the database, so it
+# should not run against production.
+devSnapshot:
+  enabled: false
+  ## @param devSnapshot.schedule Cron schedule, in global.timezone
+  schedule: "0 3 * * 0"
+  suspend: false
+  ## @param devSnapshot.activeDeadlineSeconds Kill a run that takes longer than this
+  activeDeadlineSeconds: 7200
+  image:
+    registry: ghcr.io/robert-koch-institut
+    repository: mex-invenio-dev-snapshot
+    ## @param devSnapshot.image.tag Required; the image's PG_MAJOR must match the database
+    tag: ""
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+  ## @param devSnapshot.existingSecret Required; Secret holding the keys in secretKeys
+  existingSecret: ""
+  ## The staging database connection is taken from postgresql/postgresqlExternal,
+  ## as for the app; the job's session is read-only.
+  secretKeys:
+    ## At least 32 characters; keep it stable so pseudonyms stay stable
+    salt: SNAPSHOT_SALT
+    ## Write access (PutObject) is enough
+    s3AccessKeyId: S3_ACCESS_KEY_ID
+    s3SecretAccessKey: S3_SECRET_ACCESS_KEY
+  ## Snapshots are not encrypted: the bucket must only be readable by developers.
+  s3:
+    endpointUrl: ""
+    bucket: ""
+    region: us-east-1
+    prefix: snapshots
+  ## Holds the scratch copy of the database and the dump: about twice the database size
+  work:
+    size: 20Gi
+    ## @param devSnapshot.work.storageClass Use a per-run PVC instead of an emptyDir
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+    seccompProfile:
+      type: "RuntimeDefault"
+  nodeSelector: {}
+  tolerations: []
 
 workerBeat:
   ## @param workerBeat.extraEnvVars Extra environment variables to be added to the pods.
