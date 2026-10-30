@@ -67,6 +67,16 @@ ingress:
   ## @param ingress.tlsSecretNameOverride Custom TLS secret name.
   ##
   tlsSecretNameOverride: ""
+  ## @param ingress.publicPaths Exact paths served through a second Ingress that does not get
+  ## ingress.annotations, e.g. to keep a status file reachable for monitors despite an IP allowlist.
+  ## e.g:
+  ## publicPaths:
+  ##   - /import-status.json
+  ##
+  publicPaths: []
+  ## @param ingress.publicAnnotations Annotations for the second Ingress (ingress.publicPaths).
+  ##
+  publicAnnotations: {}
 
 ## Openshift Route object
 ## @param route.annotations Annotations to be added to the Route

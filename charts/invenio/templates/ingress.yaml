@@ -29,5 +29,42 @@ spec:
                 port:
                   name: http
             pathType: Prefix
+{{- if .Values.ingress.publicPaths }}
+---
+# Paths that must stay reachable without the main Ingress's annotations, e.g. its
+# IP allowlist (whitelist-source-range): health/status files polled by external
+# monitors. Same host and TLS secret; Exact paths win over the main Ingress's "/".
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "invenio.fullname" . }}-public
+  {{- with .Values.ingress.publicAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "invenio.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.ingress.class }}
+  ingressClassName: {{ .Values.ingress.class }}
+  {{- end }}
+  tls:
+    - hosts:
+        - {{ include "invenio.hostname" $ }}
+      secretName: {{ include "invenio.tlsSecretName" $ }}
+  rules:
+    - host: {{ include "invenio.hostname" $ }}
+      http:
+        paths:
+          {{- range .Values.ingress.publicPaths }}
+          - path: {{ . }}
+            backend:
+              service:
+                name: {{ include "invenio.fullname" $ }}-web
+                port:
+                  name: http
+            pathType: Exact
+          {{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
