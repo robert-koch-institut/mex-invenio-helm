@@ -84,7 +84,7 @@ tests:
           path: spec.rules[0].http.paths
           value:
             - path: /import-status.json
-              pathType: Exact
+              pathType: ImplementationSpecific
               backend:
                 service:
                   name: test-invenio-web

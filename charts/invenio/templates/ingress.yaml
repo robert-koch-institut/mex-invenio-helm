@@ -33,7 +33,8 @@ spec:
 ---
 # Paths that must stay reachable without the main Ingress's annotations, e.g. its
 # IP allowlist (whitelist-source-range): health/status files polled by external
-# monitors. Same host and TLS secret; Exact paths win over the main Ingress's "/".
+# monitors. Same host and TLS secret; these longer paths win over the main Ingress's "/".
+# ImplementationSpecific because ingress-nginx's webhook rejects dots in Exact paths.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -63,7 +64,7 @@ spec:
                 name: {{ include "invenio.fullname" $ }}-web
                 port:
                   name: http
-            pathType: Exact
+            pathType: ImplementationSpecific
           {{- end }}
 {{- end }}
 {{- end }}
