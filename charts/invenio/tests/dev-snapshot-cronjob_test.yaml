@@ -1,0 +1,135 @@
+suite: dev-snapshot cronjob
+templates:
+  - templates/dev-snapshot-cronjob.yaml
+release:
+  name: test
+set:
+  invenio.hostname: "test.example.com"
+  postgresqlExternal:
+    hostname: db.example.org
+    username: invenio
+    database: invenio
+    existingSecret: db-secret
+    existingSecretPasswordKey: password
+  devSnapshot:
+    enabled: true
+    existingSecret: dev-snapshot
+    image:
+      tag: "abc123"
+    s3:
+      endpointUrl: "https://s3.example.com"
+      bucket: "mex-dev-snapshots"
+tests:
+  - it: renders nothing when disabled
+    set:
+      devSnapshot.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: renders only the CronJob
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: CronJob
+
+  - it: never runs two snapshots at once and does not retry
+    asserts:
+      - equal:
+          path: spec.concurrencyPolicy
+          value: Forbid
+      - equal:
+          path: spec.jobTemplate.spec.backoffLimit
+          value: 0
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.restartPolicy
+          value: Never
+
+  - it: builds the image from the devSnapshot image values
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].image
+          value: ghcr.io/robert-koch-institut/mex-invenio-dev-snapshot:abc123
+
+  - it: takes credentials from the existing secret
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: INVENIO_DB_HOST
+            value: db.example.org
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: SNAPSHOT_SALT
+            valueFrom:
+              secretKeyRef:
+                name: dev-snapshot
+                key: SNAPSHOT_SALT
+
+  - it: records the Invenio image in APP_IMAGE
+    set:
+      image.registry: ghcr.io/robert-koch-institut
+      image.repository: mex-invenio
+      image.tag: deadbeef
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.containers[0].env
+          content:
+            name: APP_IMAGE
+            value: ghcr.io/robert-koch-institut/mex-invenio:deadbeef
+
+  - it: uses a size-limited emptyDir for the scratch database by default
+    asserts:
+      - contains:
+          path: spec.jobTemplate.spec.template.spec.volumes
+          content:
+            name: work
+            emptyDir:
+              sizeLimit: 20Gi
+
+  - it: uses a per-run volume when a storage class is set
+    set:
+      devSnapshot.work.storageClass: gp3
+      devSnapshot.work.size: 50Gi
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.storageClassName
+          value: gp3
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.volumes[0].ephemeral.volumeClaimTemplate.spec.resources.requests.storage
+          value: 50Gi
+
+  - it: runs as the postgres user with a read-only root filesystem
+    asserts:
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext.runAsUser
+          value: 999
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.securityContext.fsGroup
+          value: 999
+      - equal:
+          path: spec.jobTemplate.spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+
+  - it: requires the existing secret
+    set:
+      devSnapshot.existingSecret: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: Missing .Values.devSnapshot.existingSecret
+
+  - it: requires the S3 bucket
+    set:
+      devSnapshot.s3.bucket: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: Missing .Values.devSnapshot.s3.bucket
+
+  - it: requires an image tag
+    set:
+      devSnapshot.image.tag: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: Missing .Values.devSnapshot.image.tag

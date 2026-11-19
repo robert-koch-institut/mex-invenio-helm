@@ -257,7 +257,7 @@ data:
         # linked from the /downloads page and served here directly off the
         # shared volume.
         location /downloadable-files/ {
-          alias /opt/downloadable-files/;
+          alias /opt/import-data/downloadable_files/;
           types {
             text/csv csv;
             application/json json;
