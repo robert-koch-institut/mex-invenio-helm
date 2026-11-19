@@ -9,9 +9,15 @@ spec:
   schedule: "0 5 * * *"
   suspend: {{ .Values.importjob.suspend | default false }}
   concurrencyPolicy: Forbid
+  # Failed runs are kept so the reason can be seen with kubectl; finished Jobs
+  # are cleaned up by these limits rather than a TTL, which removed failed ones too.
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
-      ttlSecondsAfterFinished: 7200
+      # No retries: a retry re-runs the whole sync, and the importer records a
+      # failed or interrupted import in .import_state, which blocks re-runs anyway.
+      backoffLimit: 0
       template:
         spec:
           containers:
@@ -57,7 +63,7 @@ spec:
             persistentVolumeClaim:
               claimName: {{ include "invenio.fullname" . }}-import-data
           {{- end }}
-          restartPolicy: OnFailure
+          restartPolicy: Never
           {{- if .Values.web.imagePullSecret }}
           imagePullSecrets:
           - name: {{ .Values.web.imagePullSecret }}
